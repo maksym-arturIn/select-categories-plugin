@@ -1,23 +1,29 @@
 {
-  "name": "select-categories-plugin",
+  "name": "first-strapi",
   "version": "0.1.0",
   "private": true,
   "description": "A Strapi application",
   "scripts": {
     "build": "strapi build",
     "deploy": "strapi deploy",
-    "develop": "strapi develop",
+    "dev": "strapi develop --watch-admin",
+    "seed:example": "node ./scripts/seed.js",
     "start": "strapi start",
-    "strapi": "strapi"
+    "strapi": "strapi",
+    "rebuild": "cd src/plugins/select-categories/ && npm run build && npm run verify && cd ../../../",
+    "clean": "strapi build --clean"
   },
   "dependencies": {
     "@strapi/plugin-cloud": "5.9.0",
     "@strapi/plugin-users-permissions": "5.9.0",
     "@strapi/strapi": "5.9.0",
     "better-sqlite3": "11.3.0",
+    "fs-extra": "^10.0.0",
+    "mime-types": "^2.1.27",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.0.0",
+    "strapi-plugin-multi-select": "^2.1.1",
     "styled-components": "^6.0.0"
   },
   "devDependencies": {
@@ -31,6 +37,6 @@
     "npm": ">=6.0.0"
   },
   "strapi": {
-    "uuid": "9ceb99e7-839d-4261-bc1d-d47d1aac0491"
+    "uuid": "7ccc3fb9-7066-4c82-9ace-915ab14f3bbc"
   }
 }
