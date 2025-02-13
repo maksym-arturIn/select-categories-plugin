@@ -1,12 +1,9 @@
 import type { Core } from '@strapi/strapi';
+import { PLUGIN_ID } from '../../pluginId';
 
 const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
   index(ctx) {
-    ctx.body = strapi
-      .plugin('select-categories')
-      // the name of the service file & the method.
-      .service('service')
-      .getWelcomeMessage();
+    ctx.body = strapi.plugin(PLUGIN_ID).service('service').getWelcomeMessage();
   },
 });
 

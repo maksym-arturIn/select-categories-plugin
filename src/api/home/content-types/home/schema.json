@@ -14,14 +14,6 @@
   "attributes": {
     "Title": {
       "type": "string"
-    },
-    "test": {
-      "type": "customField",
-      "options": {
-        "defaultValue": "[\n  {\n    \"id\": \"category-1\",\n    \"label\": \"Category 1\",\n    \"checked\": false,\n    \"children\": [\n      {\n        \"id\": \"subcategory-1\",\n        \"label\": \"Subcategory 1\",\n        \"checked\": false,\n        \"children\": []\n      }\n    ]\n  }\n]\n",
-        "categoriesTree": "[\n  {\n    \"id\": \"category-1\",\n    \"label\": \"Category 1\",\n    \"checked\": false,\n    \"children\": [\n      {\n        \"id\": \"subcategory-1\",\n        \"label\": \"Subcategory 1\",\n        \"checked\": false,\n        \"children\": []\n      }\n    ]\n  }\n]\n"
-      },
-      "customField": "plugin::select-categories.select-categories"
     }
   }
 }

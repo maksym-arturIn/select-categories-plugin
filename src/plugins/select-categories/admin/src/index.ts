@@ -12,11 +12,11 @@ export default {
         id: `${PLUGIN_ID}.plugin.name`,
         defaultMessage: PLUGIN_ID,
       },
-      // @ts-ignore
+      permissions: [],
       Component: async () => {
-        const { App } = await import('./pages/App');
+        const component = await import('./pages/App');
 
-        return App;
+        return component;
       },
     });
 
