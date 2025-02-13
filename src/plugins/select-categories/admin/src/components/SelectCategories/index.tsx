@@ -65,7 +65,7 @@ const RenderNode = ({
 
   const handleAddChild = useCallback(() => {
     duplicateChild(node.id, {
-      id: `${node.id}-${node.subcategories.length + 1}`,
+      id: `${node.id}-${Date.now()}`,
       name: `New CategoryNode ${node.subcategories.length + 1}`,
       checked: false,
       subcategories: [],
@@ -238,7 +238,15 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
           if (node.id === id) {
             return {
               ...node,
-              subcategories: [...node.subcategories, { ...newChild, id: `node-${Date.now()}` }],
+              subcategories: [
+                ...node.subcategories,
+                {
+                  ...newChild,
+                  name: `New CategoryNode ${node.subcategories.length + 1}`,
+                  slug: `New Slug ${node.subcategories.length + 1}`,
+                  id: `node-${Date.now()}`,
+                },
+              ],
             };
           }
           return { ...node, subcategories: findNode(node.subcategories) };
