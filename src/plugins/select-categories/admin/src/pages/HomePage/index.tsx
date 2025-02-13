@@ -17,7 +17,7 @@ const HomePage = () => {
       id: '1',
       label: 'Category',
       checked: false,
-      children: [],
+      subcategories: [],
     },
   ]);
 

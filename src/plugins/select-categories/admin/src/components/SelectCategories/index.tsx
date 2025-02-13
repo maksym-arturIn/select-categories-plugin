@@ -1,20 +1,21 @@
 import { useCallback, useState } from 'react';
 
 import { Accordion, Checkbox } from '@strapi/design-system';
-import { Plus, Trash } from '@strapi/icons';
+import { ArrowDown, ArrowUp, Pencil, Plus, Trash } from '@strapi/icons';
 import {
   AccordionItem,
   AccordionRoot,
+  Actions,
   AddParentButton,
   AddParentButtonWrapper,
-  DeleteButton,
+  ActionButton,
 } from './StyledComponents';
 
 type Node = {
   id: string;
   label: string;
   checked: boolean;
-  children: Node[];
+  subcategories: Node[];
 };
 
 type RenderNodeParameters = {
@@ -23,6 +24,7 @@ type RenderNodeParameters = {
   duplicateParent: (id: string) => void;
   updateChild: (id: string, node: Node) => void;
   deleteChild: (id: string) => void;
+  updateChildOrder: (id: string, direction?: number) => () => void;
   showAddBtn?: boolean;
   index: number;
 };
@@ -31,7 +33,7 @@ const toggleCheckedById = (tree: Node[], id: string): Node[] => {
   return tree.map((node) => ({
     ...node,
     checked: node.id === id ? !node.checked : node.checked,
-    children: toggleCheckedById(node.children, id),
+    subcategories: toggleCheckedById(node.subcategories, id),
   }));
 };
 
@@ -41,6 +43,7 @@ const renderNode = ({
   duplicateParent,
   updateChild,
   deleteChild,
+  updateChildOrder,
   showAddBtn,
   index,
 }: RenderNodeParameters) => {
@@ -50,10 +53,10 @@ const renderNode = ({
 
   const handleAddChild = () => {
     duplicateChild(node.id, {
-      id: `${node.id}-${node.children.length + 1}`,
-      label: 'New Node',
+      id: `${node.id}-${node.subcategories.length + 1}`,
+      label: `New Node ${node.subcategories.length + 1}`,
       checked: false,
-      children: [],
+      subcategories: [],
     });
   };
 
@@ -76,15 +79,26 @@ const renderNode = ({
             <Checkbox checked={node.checked} onCheckedChange={() => handleCheckboxChange(node)}>
               {node.label}
             </Checkbox>
-            <DeleteButton aria-label="Add child category" onClick={() => deleteChild(node.id)}>
-              <Trash />
-            </DeleteButton>
+            <Actions>
+              <ActionButton onClick={updateChildOrder(node.id, -1)}>
+                <ArrowUp />
+              </ActionButton>
+              <ActionButton onClick={updateChildOrder(node.id)}>
+                <ArrowDown />
+              </ActionButton>
+              <ActionButton onClick={() => {}}>
+                <Pencil />
+              </ActionButton>
+              <ActionButton aria-label="Add child category" onClick={() => deleteChild(node.id)}>
+                <Trash />
+              </ActionButton>
+            </Actions>
           </div>
         </Accordion.Header>
         <Accordion.Content>
-          {node.children.length > 0 && (
+          {node.subcategories.length > 0 && (
             <AccordionRoot index={index} isNestedFirst={false} style={{ paddingTop: '1rem' }}>
-              {node.children.map((child) =>
+              {node.subcategories.map((child) =>
                 renderNode({
                   node: child,
                   duplicateChild,
@@ -93,6 +107,7 @@ const renderNode = ({
                   updateChild,
                   deleteChild,
                   index: index + 1,
+                  updateChildOrder,
                 })
               )}
             </AccordionRoot>
@@ -133,7 +148,7 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
           if (node.id === id) {
             return { ...node, ...updatedChild };
           }
-          return { ...node, children: updateNode(node.children) };
+          return { ...node, subcategories: updateNode(node.subcategories) };
         });
       };
 
@@ -159,10 +174,10 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
           if (node.id === id) {
             return {
               ...node,
-              children: [...node.children, { ...newChild, id: `node-${Date.now()}` }],
+              subcategories: [...node.subcategories, { ...newChild, id: `node-${Date.now()}` }],
             };
           }
-          return { ...node, children: findNode(node.children) };
+          return { ...node, subcategories: findNode(node.subcategories) };
         });
       };
 
@@ -190,14 +205,14 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
               node,
               {
                 id: `node-${Date.now()}`,
-                label: 'New Category',
+                label: `New Category ${nodes.length + 1}`,
                 checked: false,
-                children: [],
+                subcategories: [],
               },
             ];
           }
 
-          return { ...node, children: findAndDuplicate(node.children) };
+          return { ...node, subcategories: findAndDuplicate(node.subcategories) };
         });
       };
 
@@ -220,7 +235,7 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
       const removeNode = (nodes: Node[]): Node[] => {
         return nodes
           .filter((node) => node.id !== id)
-          .map((node) => ({ ...node, children: removeNode(node.children) }));
+          .map((node) => ({ ...node, subcategories: removeNode(node.subcategories) }));
       };
 
       const updatedTree = removeNode(newTree);
@@ -236,6 +251,49 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
     setTree(callback);
   }, []);
 
+  const updateChildOrder = useCallback(
+    (id: string, direction = 1) =>
+      () => {
+        const callback = (prevTree: Node[]) => {
+          const newTree = structuredClone(prevTree);
+
+          const reorderNodes = (nodes: Node[]): Node[] => {
+            const index = nodes.findIndex((node) => node.id === id);
+
+            if (index === -1) {
+              return nodes.map((node) => ({
+                ...node,
+                subcategories: reorderNodes(node.subcategories),
+              }));
+            }
+
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= nodes.length) return nodes;
+
+            const updatedNodes = [...nodes];
+            [updatedNodes[index], updatedNodes[newIndex]] = [
+              updatedNodes[newIndex],
+              updatedNodes[index],
+            ];
+
+            return updatedNodes;
+          };
+
+          const updatedTree = reorderNodes(newTree);
+
+          if (onChange) {
+            onChange({ target: { name: 'categoriesTree', value: updatedTree } });
+          }
+
+          return updatedTree;
+        };
+
+        setPassedTree(callback);
+        setTree(callback);
+      },
+    []
+  );
+
   return tree.length > 0 ? (
     <AccordionRoot index={0} isNestedFirst={true} style={{ border: 'none' }}>
       {tree.map((node, index, parrentArr) => {
@@ -247,6 +305,7 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
           deleteChild,
           showAddBtn: index === parrentArr.length - 1,
           index: 0,
+          updateChildOrder,
         });
       })}
     </AccordionRoot>
@@ -260,7 +319,7 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
               id: `node-${Date.now()}`,
               label: 'Category',
               checked: false,
-              children: [],
+              subcategories: [],
             },
           ])
         }

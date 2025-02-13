@@ -45,14 +45,13 @@ export const AccordionRoot = styled(Accordion.Root)<{ isNestedFirst: boolean; in
     width: 0.5rem;
     height: 100%;
     background-color: rgba(72, 69, 255, 0.66);
-    // bottom: -1rem;
     bottom: ${({ isNestedFirst }) => (isNestedFirst ? 0 : '-1.5rem')};
     left: ${({ isNestedFirst, index }) => (isNestedFirst ? '2.24rem' : `${42 + index}px`)};
     z-index: -1;
   }
 `;
 
-export const DeleteButton = styled(IconButton)`
+export const ActionButton = styled(IconButton)`
   border: none;
 `;
 
@@ -78,4 +77,10 @@ export const AccordionItem = styled(Accordion.Item)`
       background-color: #fff !important;
     }
   }
+`;
+
+export const Actions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 `;
