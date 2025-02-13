@@ -161,7 +161,10 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
       return updatedTree;
     };
 
-    setPassedTree(callback);
+    if (setPassedTree) {
+      setPassedTree(callback);
+    }
+
     setTree(callback);
   }, []);
 
@@ -190,7 +193,9 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
       return updatedTree;
     };
 
-    setPassedTree(callback);
+    if (setPassedTree) {
+      setPassedTree(callback);
+    }
     setTree(callback);
   }, []);
 
@@ -224,7 +229,10 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
 
       return updatedTree;
     };
-    setPassedTree(callback);
+
+    if (setPassedTree) {
+      setPassedTree(callback);
+    }
     setTree(callback);
   }, []);
 
@@ -247,7 +255,9 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
       return updatedTree;
     };
 
-    setPassedTree(callback);
+    if (setPassedTree) {
+      setPassedTree(callback);
+    }
     setTree(callback);
   }, []);
 
@@ -288,11 +298,30 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
           return updatedTree;
         };
 
-        setPassedTree(callback);
+        if (setPassedTree) {
+          setPassedTree(callback);
+        }
         setTree(callback);
       },
     []
   );
+
+  const handleAddFirstNode = useCallback(() => {
+    const callback = (prev: Node[]) => [
+      ...prev,
+      {
+        id: `node-${Date.now()}`,
+        label: 'Category',
+        checked: false,
+        subcategories: [],
+      },
+    ];
+
+    if (setPassedTree) {
+      setPassedTree(callback);
+    }
+    setTree(callback);
+  }, []);
 
   return tree.length > 0 ? (
     <AccordionRoot index={0} isNestedFirst={true} style={{ border: 'none' }}>
@@ -311,19 +340,7 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
     </AccordionRoot>
   ) : (
     <AddParentButtonWrapper>
-      <AddParentButton
-        onClick={() =>
-          setPassedTree((prev: Node[]) => [
-            ...prev,
-            {
-              id: `node-${Date.now()}`,
-              label: 'Category',
-              checked: false,
-              subcategories: [],
-            },
-          ])
-        }
-      >
+      <AddParentButton onClick={handleAddFirstNode}>
         <Plus />
       </AddParentButton>
       <p>Add new category</p>
