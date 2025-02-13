@@ -1,13 +1,7 @@
-import Accodring from './components/SelectCategoriesAccordion';
 import { PLUGIN_ID } from './pluginId';
 import { Initializer } from './components/Initializer';
 import { PluginIcon } from './components/PluginIcon';
 import { StrapiApp } from '@strapi/strapi/admin';
-
-// const TestComponent = (props: any) => {
-//   console.log('props', props);
-//   return <div>It Works!</div>;
-// };
 
 export default {
   register(app: StrapiApp) {
@@ -18,11 +12,11 @@ export default {
         id: `${PLUGIN_ID}.plugin.name`,
         defaultMessage: PLUGIN_ID,
       },
-      // @ts-ignore
+      permissions: [],
       Component: async () => {
-        const { App } = await import('./pages/App');
+        const component = await import('./pages/App');
 
-        return App;
+        return component;
       },
     });
 
