@@ -15,7 +15,8 @@ const HomePage = () => {
   const [tree, setTree] = useState([
     {
       id: '1',
-      label: 'Category',
+      name: 'Category',
+      slug: 'Slug Category',
       checked: false,
       subcategories: [],
     },
@@ -25,14 +26,19 @@ const HomePage = () => {
 
   const formik = useFormik({
     initialValues,
-    onSubmit: () => {},
+    onSubmit: (values) => {
+      console.log({
+        ...values,
+        tree,
+      });
+    },
   });
 
   return (
     <Page>
       <Header>
         <Title>Select categories</Title>
-        <SaveButton>
+        <SaveButton type="submit" onClick={formik.handleSubmit}>
           <Check />
           Save
         </SaveButton>

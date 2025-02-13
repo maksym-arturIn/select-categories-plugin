@@ -2,6 +2,7 @@ import styled from 'styled-components';
 import { Button } from '@strapi/design-system';
 import { Accordion } from '@strapi/design-system';
 import { IconButton } from '@strapi/design-system';
+import { Field } from '@strapi/design-system';
 
 export const AddParentButton = styled(Button)`
   border-radius: 100%;
@@ -26,7 +27,7 @@ export const AddParentButtonWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   margin-left: 0.5rem;
 `;
 
@@ -34,7 +35,7 @@ export const AccordionRoot = styled(Accordion.Root)<{ isNestedFirst: boolean; in
   border: none;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
   background-color: transparent;
   position: relative;
   z-index: 10;
@@ -63,7 +64,7 @@ export const AccordionItem = styled(Accordion.Item)`
   h4,
   h5,
   h6 {
-    padding-left: 1.6rem;
+    padding: 1rem 0 1rem 1.6rem;
   }
 
   &:hover {
@@ -83,4 +84,16 @@ export const Actions = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+`;
+
+export const TextFields = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-right: 1.5rem;
+  width: 100%;
+`;
+
+export const FieldRoot = styled(Field.Root)`
+  width: 100%;
 `;

@@ -1,7 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
-import { Accordion, Checkbox } from '@strapi/design-system';
-import { ArrowDown, ArrowUp, Pencil, Plus, Trash } from '@strapi/icons';
+import { Accordion } from '@strapi/design-system';
+import { ArrowDown, ArrowUp, Plus, Trash } from '@strapi/icons';
 import {
   AccordionItem,
   AccordionRoot,
@@ -9,27 +9,36 @@ import {
   AddParentButton,
   AddParentButtonWrapper,
   ActionButton,
+  TextFields,
+  FieldRoot,
 } from './StyledComponents';
+import { TextInput } from '@strapi/design-system';
+import { Modal } from '@strapi/design-system';
+import { Button } from '@strapi/design-system';
+import { Typography } from '@strapi/design-system';
 
-type Node = {
+type CategoryNode = {
   id: string;
-  label: string;
+  name: string;
+  slug: string;
   checked: boolean;
-  subcategories: Node[];
+  subcategories: CategoryNode[];
 };
 
+type UpdatedCategoryValue = Exclude<keyof CategoryNode, 'id'>;
+
 type RenderNodeParameters = {
-  node: Node;
-  duplicateChild: (id: string, node: Node) => void;
+  node: CategoryNode;
+  duplicateChild: (id: string, node: CategoryNode) => void;
   duplicateParent: (id: string) => void;
-  updateChild: (id: string, node: Node) => void;
+  updateChild: (id: string, node: CategoryNode) => void;
   deleteChild: (id: string) => void;
   updateChildOrder: (id: string, direction?: number) => () => void;
   showAddBtn?: boolean;
   index: number;
 };
 
-const toggleCheckedById = (tree: Node[], id: string): Node[] => {
+const toggleCheckedById = (tree: CategoryNode[], id: string): CategoryNode[] => {
   return tree.map((node) => ({
     ...node,
     checked: node.id === id ? !node.checked : node.checked,
@@ -37,7 +46,7 @@ const toggleCheckedById = (tree: Node[], id: string): Node[] => {
   }));
 };
 
-const renderNode = ({
+const RenderNode = ({
   node,
   duplicateChild,
   duplicateParent,
@@ -47,38 +56,72 @@ const renderNode = ({
   showAddBtn,
   index,
 }: RenderNodeParameters) => {
-  const handleCheckboxChange = (node: Node) => {
-    updateChild(node.id, { ...node, checked: !node.checked });
-  };
+  const [valueName, setValueName] = useState(node.name);
+  const [valueSlug, setValueSlug] = useState(node.slug);
 
-  const handleAddChild = () => {
+  // const handleCheckboxChange = (node: CategoryNode) => {
+  //   updateChild(node.id, { ...node, checked: !node.checked });
+  // };
+
+  const handleAddChild = useCallback(() => {
     duplicateChild(node.id, {
       id: `${node.id}-${node.subcategories.length + 1}`,
-      label: `New Node ${node.subcategories.length + 1}`,
+      name: `New CategoryNode ${node.subcategories.length + 1}`,
       checked: false,
       subcategories: [],
+      slug: `New Slug ${node.subcategories.length + 1}`,
     });
-  };
+  }, []);
 
-  const marginLeft = index > 0 ? index + 30 : 5;
+  const handleChange = useCallback(
+    (setValue: React.Dispatch<React.SetStateAction<string>>) =>
+      ({ target }: React.ChangeEvent<HTMLInputElement>) => {
+        setValue(target.value);
+      },
+    []
+  );
+
+  const handleBlur = useCallback(
+    (updateValue: UpdatedCategoryValue) =>
+      ({ target }: React.FocusEvent<HTMLInputElement, Element>) => {
+        if (node[updateValue] === target.value) return;
+
+        updateChild(node.id, { ...node, [updateValue]: target.value });
+      },
+    []
+  );
+
+  const marginLeft = useMemo(() => (index > 0 ? index + 30 : 5), []);
 
   return (
     <div key={node.id} style={{ marginLeft }}>
       <AccordionItem value={node.id}>
         <Accordion.Header>
           <Accordion.Trigger style={{ display: 'block', width: 'auto' }} />
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-              paddingRight: '1.5rem',
-            }}
-          >
-            <Checkbox checked={node.checked} onCheckedChange={() => handleCheckboxChange(node)}>
-              {node.label}
-            </Checkbox>
+          <TextFields>
+            <FieldRoot>
+              <TextInput
+                name={node.id}
+                id={node.id}
+                placeholder="Name"
+                value={valueName}
+                onChange={handleChange(setValueName)}
+                onBlur={handleBlur('name')}
+              />
+            </FieldRoot>
+            <FieldRoot>
+              <TextInput
+                name={node.id}
+                id={node.id}
+                placeholder="Slug"
+                value={valueSlug}
+                onChange={handleChange(setValueSlug)}
+                onBlur={handleBlur('slug')}
+              />
+            </FieldRoot>
+            {/* <Checkbox checked={node.checked} onCheckedChange={() => handleCheckboxChange(node)}>
+              {node.name}
+            </Checkbox> */}
             <Actions>
               <ActionButton onClick={updateChildOrder(node.id, -1)}>
                 <ArrowUp />
@@ -86,30 +129,48 @@ const renderNode = ({
               <ActionButton onClick={updateChildOrder(node.id)}>
                 <ArrowDown />
               </ActionButton>
-              <ActionButton onClick={() => {}}>
-                <Pencil />
-              </ActionButton>
-              <ActionButton aria-label="Add child category" onClick={() => deleteChild(node.id)}>
-                <Trash />
-              </ActionButton>
+              <Modal.Root>
+                <Modal.Trigger>
+                  <ActionButton aria-label="Add child category">
+                    <Trash />
+                  </ActionButton>
+                </Modal.Trigger>
+                <Modal.Content>
+                  <Modal.Body>
+                    <Typography textAlign="center">
+                      Are you sure you want to remove
+                      <Typography fontWeight="bold"> {node.name} </Typography>
+                      and its children
+                    </Typography>
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <Modal.Close>
+                      <Button variant="tertiary">Cancel</Button>
+                    </Modal.Close>
+                    <Button variant="danger" onClick={() => deleteChild(node.id)}>
+                      Delete
+                    </Button>
+                  </Modal.Footer>
+                </Modal.Content>
+              </Modal.Root>
             </Actions>
-          </div>
+          </TextFields>
         </Accordion.Header>
         <Accordion.Content>
           {node.subcategories.length > 0 && (
-            <AccordionRoot index={index} isNestedFirst={false} style={{ paddingTop: '1rem' }}>
-              {node.subcategories.map((child) =>
-                renderNode({
-                  node: child,
-                  duplicateChild,
-                  showAddBtn: false,
-                  duplicateParent,
-                  updateChild,
-                  deleteChild,
-                  index: index + 1,
-                  updateChildOrder,
-                })
-              )}
+            <AccordionRoot index={index} isNestedFirst={false} style={{ paddingTop: '1.5rem' }}>
+              {node.subcategories.map((node) => (
+                <RenderNode
+                  node={node}
+                  duplicateChild={duplicateChild}
+                  duplicateParent={duplicateParent}
+                  updateChild={updateChild}
+                  deleteChild={deleteChild}
+                  updateChildOrder={updateChildOrder}
+                  index={index + 1}
+                  showAddBtn={false}
+                />
+              ))}
             </AccordionRoot>
           )}
           <AddParentButtonWrapper style={{ marginLeft: index + 30 }}>
@@ -137,13 +198,13 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
     ? JSON.parse(attribute.options.categoriesTree)
     : passedTree || [];
 
-  const [tree, setTree] = useState<Node[]>(realTree);
+  const [tree, setTree] = useState<CategoryNode[]>(realTree);
 
-  const updateChild = useCallback((id: string, updatedChild: Node) => {
-    const callback = (prevTree: Node[]) => {
+  const updateChild = useCallback((id: string, updatedChild: CategoryNode) => {
+    const callback = (prevTree: CategoryNode[]) => {
       const newTree = structuredClone(prevTree);
 
-      const updateNode = (nodes: Node[]): Node[] => {
+      const updateNode = (nodes: CategoryNode[]): CategoryNode[] => {
         return nodes.map((node) => {
           if (node.id === id) {
             return { ...node, ...updatedChild };
@@ -168,11 +229,11 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
     setTree(callback);
   }, []);
 
-  const duplicateChild = useCallback((id: string, newChild: Node) => {
-    const callback = (prevTree: Node[]) => {
+  const duplicateChild = useCallback((id: string, newChild: CategoryNode) => {
+    const callback = (prevTree: CategoryNode[]) => {
       const newTree = structuredClone(prevTree);
 
-      const findNode = (nodes: Node[]): Node[] => {
+      const findNode = (nodes: CategoryNode[]): CategoryNode[] => {
         return nodes.map((node) => {
           if (node.id === id) {
             return {
@@ -200,17 +261,18 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
   }, []);
 
   const duplicateParent = useCallback((id: string) => {
-    const callback = (prevTree: Node[]) => {
+    const callback = (prevTree: CategoryNode[]) => {
       const newTree = structuredClone(prevTree);
 
-      const findAndDuplicate = (nodes: Node[]): Node[] => {
+      const findAndDuplicate = (nodes: CategoryNode[]): CategoryNode[] => {
         return nodes.flatMap((node) => {
           if (node.id === id) {
             return [
               node,
               {
                 id: `node-${Date.now()}`,
-                label: `New Category ${nodes.length + 1}`,
+                name: `New Category ${nodes.length + 1}`,
+                slug: `New Slug ${nodes.length + 1}`,
                 checked: false,
                 subcategories: [],
               },
@@ -237,10 +299,10 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
   }, []);
 
   const deleteChild = useCallback((id: string) => {
-    const callback = (prevTree: Node[]) => {
+    const callback = (prevTree: CategoryNode[]) => {
       const newTree = structuredClone(prevTree);
 
-      const removeNode = (nodes: Node[]): Node[] => {
+      const removeNode = (nodes: CategoryNode[]): CategoryNode[] => {
         return nodes
           .filter((node) => node.id !== id)
           .map((node) => ({ ...node, subcategories: removeNode(node.subcategories) }));
@@ -264,10 +326,10 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
   const updateChildOrder = useCallback(
     (id: string, direction = 1) =>
       () => {
-        const callback = (prevTree: Node[]) => {
+        const callback = (prevTree: CategoryNode[]) => {
           const newTree = structuredClone(prevTree);
 
-          const reorderNodes = (nodes: Node[]): Node[] => {
+          const reorderNodes = (nodes: CategoryNode[]): CategoryNode[] => {
             const index = nodes.findIndex((node) => node.id === id);
 
             if (index === -1) {
@@ -307,11 +369,12 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
   );
 
   const handleAddFirstNode = useCallback(() => {
-    const callback = (prev: Node[]) => [
+    const callback = (prev: CategoryNode[]) => [
       ...prev,
       {
         id: `node-${Date.now()}`,
-        label: 'Category',
+        name: 'Category',
+        slug: 'Slug',
         checked: false,
         subcategories: [],
       },
@@ -324,20 +387,23 @@ const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCha
   }, []);
 
   return tree.length > 0 ? (
-    <AccordionRoot index={0} isNestedFirst={true} style={{ border: 'none' }}>
-      {tree.map((node, index, parrentArr) => {
-        return renderNode({
-          node,
-          duplicateChild,
-          duplicateParent,
-          updateChild,
-          deleteChild,
-          showAddBtn: index === parrentArr.length - 1,
-          index: 0,
-          updateChildOrder,
-        });
-      })}
-    </AccordionRoot>
+    <>
+      <AccordionRoot index={0} isNestedFirst={true} style={{ border: 'none' }}>
+        {tree.map((node, index, parrentArr) => (
+          <RenderNode
+            node={node}
+            duplicateChild={duplicateChild}
+            duplicateParent={duplicateParent}
+            updateChild={updateChild}
+            deleteChild={deleteChild}
+            updateChildOrder={updateChildOrder}
+            index={0}
+            showAddBtn={index === parrentArr.length - 1}
+            key={node.id}
+          />
+        ))}
+      </AccordionRoot>
+    </>
   ) : (
     <AddParentButtonWrapper>
       <AddParentButton onClick={handleAddFirstNode}>
