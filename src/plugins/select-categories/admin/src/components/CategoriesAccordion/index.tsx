@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { FC, useCallback, useMemo, useState } from 'react';
 
 import { Accordion } from '@strapi/design-system';
 import { ArrowDown, ArrowUp, Plus, Trash } from '@strapi/icons';
@@ -17,7 +17,7 @@ import { Modal } from '@strapi/design-system';
 import { Button } from '@strapi/design-system';
 import { Typography } from '@strapi/design-system';
 
-type CategoryNode = {
+export type CategoryNode = {
   id: string;
   name: string;
   slug: string;
@@ -29,9 +29,9 @@ type UpdatedCategoryValue = Exclude<keyof CategoryNode, 'id'>;
 
 type RenderNodeParameters = {
   node: CategoryNode;
-  duplicateChild: (id: string, node: CategoryNode) => void;
+  duplicateChild: (id: string, node: Partial<CategoryNode>) => void;
   duplicateParent: (id: string) => void;
-  updateChild: (id: string, node: CategoryNode) => void;
+  updateChild: (id: string, newChild: CategoryNode) => void;
   deleteChild: (id: string) => void;
   updateChildOrder: (id: string, direction?: number) => () => void;
   showAddBtn?: boolean;
@@ -65,7 +65,6 @@ const RenderNode = ({
 
   const handleAddChild = useCallback(() => {
     duplicateChild(node.id, {
-      id: `${node.id}-${Date.now()}`,
       name: `New CategoryNode ${node.subcategories.length + 1}`,
       checked: false,
       subcategories: [],
@@ -161,6 +160,7 @@ const RenderNode = ({
             <AccordionRoot index={index} isNestedFirst={false} style={{ paddingTop: '1.5rem' }}>
               {node.subcategories.map((node) => (
                 <RenderNode
+                  key={node.id}
                   node={node}
                   duplicateChild={duplicateChild}
                   duplicateParent={duplicateParent}
@@ -193,13 +193,12 @@ const RenderNode = ({
   );
 };
 
-export const CategoriesAccordion = ({ passedTree, setPassedTree, attribute, onChange }: any) => {
-  const realTree = attribute?.options?.categoriesTree
-    ? JSON.parse(attribute.options.categoriesTree)
-    : passedTree || [];
+type Props = {
+  passedTree: CategoryNode[];
+  setPassedTree: React.Dispatch<React.SetStateAction<CategoryNode[]>>;
+};
 
-  const [tree, setTree] = useState<CategoryNode[]>(realTree);
-
+export const CategoriesAccordion: FC<Props> = ({ passedTree, setPassedTree }) => {
   const updateChild = useCallback((id: string, updatedChild: CategoryNode) => {
     const callback = (prevTree: CategoryNode[]) => {
       const newTree = structuredClone(prevTree);
@@ -215,21 +214,13 @@ export const CategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCh
 
       const updatedTree = updateNode(newTree);
 
-      if (onChange) {
-        onChange({ target: { name: 'categoriesTree', value: updatedTree } });
-      }
-
       return updatedTree;
     };
 
-    if (setPassedTree) {
-      setPassedTree(callback);
-    }
-
-    setTree(callback);
+    setPassedTree(callback);
   }, []);
 
-  const duplicateChild = useCallback((id: string, newChild: CategoryNode) => {
+  const duplicateChild = useCallback((id: string, newChild: Partial<CategoryNode>) => {
     const callback = (prevTree: CategoryNode[]) => {
       const newTree = structuredClone(prevTree);
 
@@ -242,12 +233,12 @@ export const CategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCh
                 ...node.subcategories,
                 {
                   ...newChild,
+                  id: `node-${Date.now()}`,
                   name: `New CategoryNode ${node.subcategories.length + 1}`,
                   slug: `New Slug ${node.subcategories.length + 1}`,
-                  id: `node-${Date.now()}`,
                 },
               ],
-            };
+            } as CategoryNode;
           }
           return { ...node, subcategories: findNode(node.subcategories) };
         });
@@ -255,17 +246,9 @@ export const CategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCh
 
       const updatedTree = findNode(newTree);
 
-      if (onChange) {
-        onChange({ target: { name: 'categoriesTree', value: updatedTree } });
-      }
-
       return updatedTree;
     };
-
-    if (setPassedTree) {
-      setPassedTree(callback);
-    }
-    setTree(callback);
+    setPassedTree(callback);
   }, []);
 
   const duplicateParent = useCallback((id: string) => {
@@ -293,17 +276,10 @@ export const CategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCh
 
       const updatedTree = findAndDuplicate(newTree);
 
-      if (onChange) {
-        onChange({ target: { name: 'categoriesTree', value: updatedTree } });
-      }
-
       return updatedTree;
     };
 
-    if (setPassedTree) {
-      setPassedTree(callback);
-    }
-    setTree(callback);
+    setPassedTree(callback);
   }, []);
 
   const deleteChild = useCallback((id: string) => {
@@ -318,17 +294,10 @@ export const CategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCh
 
       const updatedTree = removeNode(newTree);
 
-      if (onChange) {
-        onChange({ target: { name: 'categoriesTree', value: updatedTree } });
-      }
-
       return updatedTree;
     };
 
-    if (setPassedTree) {
-      setPassedTree(callback);
-    }
-    setTree(callback);
+    setPassedTree(callback);
   }, []);
 
   const updateChildOrder = useCallback(
@@ -361,17 +330,10 @@ export const CategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCh
 
           const updatedTree = reorderNodes(newTree);
 
-          if (onChange) {
-            onChange({ target: { name: 'categoriesTree', value: updatedTree } });
-          }
-
           return updatedTree;
         };
 
-        if (setPassedTree) {
-          setPassedTree(callback);
-        }
-        setTree(callback);
+        setPassedTree(callback);
       },
     []
   );
@@ -388,16 +350,13 @@ export const CategoriesAccordion = ({ passedTree, setPassedTree, attribute, onCh
       },
     ];
 
-    if (setPassedTree) {
-      setPassedTree(callback);
-    }
-    setTree(callback);
+    setPassedTree(callback);
   }, []);
 
-  return tree.length > 0 ? (
+  return passedTree.length > 0 ? (
     <>
       <AccordionRoot index={0} isNestedFirst={true} style={{ border: 'none' }}>
-        {tree.map((node, index, parrentArr) => (
+        {passedTree.map((node, index, parrentArr) => (
           <RenderNode
             node={node}
             duplicateChild={duplicateChild}

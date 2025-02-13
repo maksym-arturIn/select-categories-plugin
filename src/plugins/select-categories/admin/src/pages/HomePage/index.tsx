@@ -3,7 +3,7 @@ import { Check } from '@strapi/icons';
 import { useFormik } from 'formik';
 
 import { TextFieldsBox, Header, Page, SaveButton, Title, Box } from './StyledComponents';
-import { TextField, CategoriesAccordion } from '../../components';
+import { TextField, CategoriesAccordion, CategoryNode } from '../../components';
 
 const initialValues = {
   name: '',
@@ -11,7 +11,7 @@ const initialValues = {
 };
 
 const HomePage = () => {
-  const [tree, setTree] = useState([
+  const [tree, setTree] = useState<CategoryNode[]>([
     {
       id: '1',
       name: 'Category',
