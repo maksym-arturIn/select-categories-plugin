@@ -1,91 +1,199 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, FC } from 'react';
 import { TextInput } from '@strapi/design-system';
-import { Menu, Option, Wrapper } from './StyledComponents';
+import { Menu, Option, OptionInner, Wrapper } from './StyledComponents';
+import { CategoryNode } from '../CategoriesAccordion';
+import { Checkbox } from '@strapi/design-system';
 
 const categories = [
   {
-    label: 'Еда',
-    value: 'food',
-    children: [
-      { label: 'Фастфуд', value: 'fast-food' },
-      { label: 'Здоровая еда', value: 'healthy' },
+    id: '1',
+    name: 'Category',
+    slug: 'Slug Category',
+    checked: false,
+    subcategories: [],
+  },
+  {
+    id: '2',
+    name: 'Category',
+    slug: 'Slug Category',
+    checked: false,
+    subcategories: [],
+  },
+  {
+    id: '3',
+    name: 'Category',
+    slug: 'Slug Category',
+    checked: false,
+    subcategories: [],
+  },
+  {
+    id: '4',
+    name: 'Category',
+    slug: 'Slug Category',
+    checked: false,
+    subcategories: [],
+  },
+  {
+    id: 'node-1739476954580',
+    name: 'New Category 2',
+    slug: 'New Slug 2',
+    checked: false,
+    subcategories: [
+      {
+        name: 'New CategoryNode 1',
+        checked: false,
+        subcategories: [
+          {
+            name: 'New CategoryNode 1',
+            checked: false,
+            subcategories: [],
+            slug: 'New Slug 1',
+            id: 'node-1739476958579',
+          },
+          {
+            name: 'New CategoryNode 2',
+            checked: false,
+            subcategories: [
+              {
+                name: 'New CategoryNode 1',
+                checked: false,
+                subcategories: [],
+                slug: 'New Slug 1',
+                id: 'node-1739476961863',
+              },
+            ],
+            slug: 'New Slug 2',
+            id: 'node-1739476959419',
+          },
+          {
+            name: 'New CategoryNode 3',
+            checked: false,
+            subcategories: [],
+            slug: 'New Slug 3',
+            id: 'node-1739476963071',
+          },
+        ],
+        slug: 'New Slug 1',
+        id: 'node-1739476957523',
+      },
+      {
+        name: 'New CategoryNode 2',
+        checked: false,
+        subcategories: [],
+        slug: 'New Slug 2',
+        id: 'node-1739476960578',
+      },
     ],
   },
   {
-    label: 'Напитки',
-    value: 'drinks',
-    children: [
-      { label: 'Алкогольные', value: 'alcohol' },
-      { label: 'Безалкогольные', value: 'non-alcohol' },
+    id: 'node-1739476955114',
+    name: 'New Category 3',
+    slug: 'New Slug 3',
+    checked: false,
+    subcategories: [
+      {
+        name: 'New CategoryNode 1',
+        checked: false,
+        subcategories: [],
+        slug: 'New Slug 1',
+        id: 'node-1739476966191',
+      },
+      {
+        name: 'New CategoryNode 2',
+        checked: false,
+        subcategories: [],
+        slug: 'New Slug 2',
+        id: 'node-1739476966877',
+      },
+      {
+        name: 'New CategoryNode 3',
+        checked: false,
+        subcategories: [],
+        slug: 'New Slug 3',
+        id: 'node-1739476967781',
+      },
     ],
   },
 ];
 
-const RenderOption = ({ category, handleSelect, selected }: any) => {
-  return (
-    <Option key={category.value}>
-      <div
-        style={{
-          cursor: 'pointer',
-          padding: '4px 8px',
-          background: selected.includes(category.value) ? '#eee' : '',
-        }}
-        onClick={() => handleSelect(category.value)}
-      >
-        {category.label}
-      </div>
+const filterCategories = (categories: CategoryNode[], search: string): CategoryNode[] => {
+  return categories
+    .map((category) => {
+      const filteredChildren = filterCategories(category.subcategories, search);
 
-      {category?.children?.length > 0 &&
-        category?.children?.map((child) => (
-          <RenderOption
-            key={child.value}
-            category={child}
-            handleSelect={handleSelect}
-            selected={selected}
-          />
+      if (
+        category.name.toLowerCase().includes(search.toLowerCase()) ||
+        filteredChildren.length > 0
+      ) {
+        return { ...category, subcategories: filteredChildren };
+      }
+
+      return null;
+    })
+    .filter(Boolean) as CategoryNode[];
+};
+
+const getAllSubcategoryIds = (category: CategoryNode) => {
+  let ids = [category.id];
+  category.subcategories.forEach((sub) => {
+    ids = ids.concat(getAllSubcategoryIds(sub));
+  });
+  return ids;
+};
+
+type RenderOptionProps = {
+  category: CategoryNode;
+  handleSelect: (category: CategoryNode) => void;
+  selected: string[];
+};
+
+const RenderOption: FC<RenderOptionProps> = ({ category, handleSelect, selected }) => {
+  const isSelected = selected.includes(category.id);
+
+  const checked = category.subcategories.length > 0 && isSelected ? 'indeterminate' : isSelected;
+
+  return (
+    <Option>
+      <OptionInner checked={Boolean(checked)}>
+        <Checkbox
+          value={category.id}
+          checked={checked}
+          onCheckedChange={() => handleSelect(category)}
+          style={{ display: 'grid' }}
+        >
+          {category.name}
+        </Checkbox>
+      </OptionInner>
+
+      {category.subcategories.length > 0 &&
+        category.subcategories.map((child) => (
+          <RenderOption category={child} handleSelect={handleSelect} selected={selected} />
         ))}
     </Option>
   );
 };
 
 const SelectCategories = () => {
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const filterCategories = (categories, search) => {
-    if (!search) return categories;
-
-    return categories
-      .map((category) => {
-        const filteredChildren = category.children.filter((child) =>
-          child.label.toLowerCase().includes(search.toLowerCase())
-        );
-
-        if (
-          category.label.toLowerCase().includes(search.toLowerCase()) ||
-          filteredChildren.length > 0
-        ) {
-          return { ...category, children: filteredChildren };
-        }
-
-        return null;
-      })
-      .filter(Boolean);
+  const handleSelect = (category: CategoryNode) => {
+    const categoryIds = getAllSubcategoryIds(category);
+    setSelected((prev) => {
+      const isSelected = prev.includes(category.id);
+      return isSelected
+        ? prev.filter((id) => !categoryIds.includes(id))
+        : [...prev, ...categoryIds];
+    });
   };
 
   const filteredOptions = filterCategories(categories, search);
 
-  const handleSelect = (value) => {
-    setSelected((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
-    );
-  };
-
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -99,7 +207,7 @@ const SelectCategories = () => {
       <TextInput
         placeholder="Select category"
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
         onFocus={() => setIsOpen(true)}
       />
 
@@ -108,7 +216,7 @@ const SelectCategories = () => {
           {filteredOptions.length > 0 ? (
             filteredOptions.map((category) => (
               <RenderOption
-                key={category.value}
+                key={category.id}
                 category={category}
                 handleSelect={handleSelect}
                 selected={selected}
