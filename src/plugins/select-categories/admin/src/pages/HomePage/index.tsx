@@ -3,8 +3,7 @@ import { Check } from '@strapi/icons';
 import { useFormik } from 'formik';
 
 import { TextFieldsBox, Header, Page, SaveButton, Title, Box } from './StyledComponents';
-import { TextField } from '../../components';
-import SelectCategoriesAccordion from '../../components/SelectCategories';
+import { TextField, CategoriesAccordion } from '../../components';
 
 const initialValues = {
   name: '',
@@ -47,7 +46,7 @@ const HomePage = () => {
         <TextField label="Name" name={'name'} formik={formik} />
         <TextField label="Slug" name={'slug'} formik={formik} />
       </TextFieldsBox>
-      <SelectCategoriesAccordion passedTree={tree} setPassedTree={setTree} />
+      <CategoriesAccordion passedTree={tree} setPassedTree={setTree} />
     </Page>
   );
 };

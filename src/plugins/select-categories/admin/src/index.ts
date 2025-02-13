@@ -46,21 +46,6 @@ export default {
         base: [
           {
             // @ts-ignore
-            name: 'options.defaultValue',
-            // @ts-ignore
-            type: 'json',
-            intlLabel: {
-              id: `${PLUGIN_ID}.select-categories.defaultValue`,
-              defaultMessage: 'Default value',
-            },
-            description: {
-              id: `${PLUGIN_ID}.select-categories.defaultValue.description`,
-              defaultMessage:
-                'Set the default value of the field in JSON format, e.g. ["value-1", "value-2"]',
-            },
-          },
-          {
-            // @ts-ignore
             name: 'options.categoriesTree',
             // @ts-ignore
             type: 'json',
@@ -72,9 +57,6 @@ export default {
               id: `${PLUGIN_ID}.select-categories.tree.description`,
               defaultMessage: 'Define a tree structure with categories and subcategories',
             },
-            // components: {
-            //   Input: async () => import('./components/SelectCategoriesAccordion'),
-            // },
           },
         ],
         advanced: [],

@@ -1,2 +1,2 @@
-export * from './SelectCategories';
+export * from './CategoriesAccordion';
 export * from './TextField';

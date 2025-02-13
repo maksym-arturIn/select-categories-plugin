@@ -14,6 +14,13 @@
   "attributes": {
     "Title": {
       "type": "string"
+    },
+    "test": {
+      "type": "customField",
+      "options": {
+        "categoriesTree": "[\n    {\n      id: '1',\n      name: 'Category',\n      slug: 'Slug Category',\n      checked: false,\n      subcategories: [],\n    },\n  ]"
+      },
+      "customField": "plugin::select-categories.select-categories"
     }
   }
 }

@@ -388,6 +388,13 @@ export interface ApiHomeHome extends Struct.SingleTypeSchema {
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::home.home'> &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
+    test: Schema.Attribute.JSON &
+      Schema.Attribute.CustomField<
+        'plugin::select-categories.select-categories',
+        {
+          categoriesTree: "[\n    {\n      id: '1',\n      name: 'Category',\n      slug: 'Slug Category',\n      checked: false,\n      subcategories: [],\n    },\n  ]";
+        }
+      >;
     Title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
