@@ -1,7 +1,14 @@
 import { useCallback, useState } from 'react';
 
-import { Accordion, Checkbox, IconButton, Button } from '@strapi/design-system';
+import { Accordion, Checkbox } from '@strapi/design-system';
 import { Plus, Trash } from '@strapi/icons';
+import {
+  AccordionItem,
+  AccordionRoot,
+  AddParentButton,
+  AddParentButtonWrapper,
+  DeleteButton,
+} from './StyledComponents';
 
 type Node = {
   id: string;
@@ -16,7 +23,8 @@ type RenderNodeParameters = {
   duplicateParent: (id: string) => void;
   updateChild: (id: string, node: Node) => void;
   deleteChild: (id: string) => void;
-  showAddBtn: boolean;
+  showAddBtn?: boolean;
+  index: number;
 };
 
 const toggleCheckedById = (tree: Node[], id: string): Node[] => {
@@ -34,6 +42,7 @@ const renderNode = ({
   updateChild,
   deleteChild,
   showAddBtn,
+  index,
 }: RenderNodeParameters) => {
   const handleCheckboxChange = (node: Node) => {
     updateChild(node.id, { ...node, checked: !node.checked });
@@ -48,9 +57,11 @@ const renderNode = ({
     });
   };
 
+  const marginLeft = index > 0 ? index + 30 : 5;
+
   return (
-    <div key={node.id}>
-      <Accordion.Item style={{ border: '1px solid #dcdce4' }} value={node.id}>
+    <div key={node.id} style={{ marginLeft }}>
+      <AccordionItem value={node.id}>
         <Accordion.Header>
           <Accordion.Trigger style={{ display: 'block', width: 'auto' }} />
           <div
@@ -65,43 +76,56 @@ const renderNode = ({
             <Checkbox checked={node.checked} onCheckedChange={() => handleCheckboxChange(node)}>
               {node.label}
             </Checkbox>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton aria-label="Add child category" onClick={handleAddChild}>
-                <Plus />
-              </IconButton>
-              <IconButton aria-label="Add child category" onClick={() => deleteChild(node.id)}>
-                <Trash />
-              </IconButton>
-            </div>
+            <DeleteButton aria-label="Add child category" onClick={() => deleteChild(node.id)}>
+              <Trash />
+            </DeleteButton>
           </div>
         </Accordion.Header>
         <Accordion.Content>
           {node.children.length > 0 && (
-            <Accordion.Root>
-              {node.children.map((child, index, parrentArr) =>
+            <AccordionRoot index={index} isNestedFirst={false} style={{ paddingTop: '1rem' }}>
+              {node.children.map((child) =>
                 renderNode({
                   node: child,
                   duplicateChild,
-                  showAddBtn: index === parrentArr.length - 1,
+                  showAddBtn: false,
                   duplicateParent,
                   updateChild,
                   deleteChild,
+                  index: index + 1,
                 })
               )}
-            </Accordion.Root>
+            </AccordionRoot>
           )}
+          <AddParentButtonWrapper style={{ marginLeft: index + 30 }}>
+            <AddParentButton onClick={handleAddChild}>
+              <Plus />
+            </AddParentButton>
+            <p>Add new subcategory</p>
+          </AddParentButtonWrapper>
         </Accordion.Content>
-      </Accordion.Item>
-      {showAddBtn && <Button onClick={() => duplicateParent(node.id)}>add</Button>}
+      </AccordionItem>
+      {showAddBtn && (
+        <AddParentButtonWrapper>
+          <AddParentButton onClick={() => duplicateParent(node.id)}>
+            <Plus />
+          </AddParentButton>
+          <p>Add new category</p>
+        </AddParentButtonWrapper>
+      )}
     </div>
   );
 };
 
-const SelectCategoriesAccordion = ({ attribute, onChange }: any) => {
-  const [tree, setTree] = useState<Node[]>(JSON.parse(attribute.options.categoriesTree) || []);
+const SelectCategoriesAccordion = ({ passedTree, setPassedTree, attribute, onChange }: any) => {
+  const realTree = attribute?.options?.categoriesTree
+    ? JSON.parse(attribute.options.categoriesTree)
+    : passedTree || [];
+
+  const [tree, setTree] = useState<Node[]>(realTree);
 
   const updateChild = useCallback((id: string, updatedChild: Node) => {
-    setTree((prevTree) => {
+    const callback = (prevTree: Node[]) => {
       const newTree = structuredClone(prevTree);
 
       const updateNode = (nodes: Node[]): Node[] => {
@@ -114,34 +138,49 @@ const SelectCategoriesAccordion = ({ attribute, onChange }: any) => {
       };
 
       const updatedTree = updateNode(newTree);
-      onChange({ target: { name: 'categoriesTree', value: updatedTree } });
+
+      if (onChange) {
+        onChange({ target: { name: 'categoriesTree', value: updatedTree } });
+      }
 
       return updatedTree;
-    });
+    };
+
+    setPassedTree(callback);
+    setTree(callback);
   }, []);
 
   const duplicateChild = useCallback((id: string, newChild: Node) => {
-    setTree((prevTree) => {
+    const callback = (prevTree: Node[]) => {
       const newTree = structuredClone(prevTree);
 
       const findNode = (nodes: Node[]): Node[] => {
         return nodes.map((node) => {
           if (node.id === id) {
-            return { ...node, children: [...node.children, newChild] };
+            return {
+              ...node,
+              children: [...node.children, { ...newChild, id: `node-${Date.now()}` }],
+            };
           }
           return { ...node, children: findNode(node.children) };
         });
       };
 
       const updatedTree = findNode(newTree);
-      onChange({ target: { name: 'categoriesTree', value: updatedTree } });
+
+      if (onChange) {
+        onChange({ target: { name: 'categoriesTree', value: updatedTree } });
+      }
 
       return updatedTree;
-    });
+    };
+
+    setPassedTree(callback);
+    setTree(callback);
   }, []);
 
   const duplicateParent = useCallback((id: string) => {
-    setTree((prevTree) => {
+    const callback = (prevTree: Node[]) => {
       const newTree = structuredClone(prevTree);
 
       const findAndDuplicate = (nodes: Node[]): Node[] => {
@@ -157,19 +196,25 @@ const SelectCategoriesAccordion = ({ attribute, onChange }: any) => {
               },
             ];
           }
+
           return { ...node, children: findAndDuplicate(node.children) };
         });
       };
 
       const updatedTree = findAndDuplicate(newTree);
-      onChange({ target: { name: 'categoriesTree', value: updatedTree } });
+
+      if (onChange) {
+        onChange({ target: { name: 'categoriesTree', value: updatedTree } });
+      }
 
       return updatedTree;
-    });
+    };
+    setPassedTree(callback);
+    setTree(callback);
   }, []);
 
   const deleteChild = useCallback((id: string) => {
-    setTree((prevTree) => {
+    const callback = (prevTree: Node[]) => {
       const newTree = structuredClone(prevTree);
 
       const removeNode = (nodes: Node[]): Node[] => {
@@ -179,14 +224,20 @@ const SelectCategoriesAccordion = ({ attribute, onChange }: any) => {
       };
 
       const updatedTree = removeNode(newTree);
-      onChange({ target: { name: 'categoriesTree', value: updatedTree } });
+
+      if (onChange) {
+        onChange({ target: { name: 'categoriesTree', value: updatedTree } });
+      }
 
       return updatedTree;
-    });
+    };
+
+    setPassedTree(callback);
+    setTree(callback);
   }, []);
 
-  return (
-    <Accordion.Root style={{ border: 'none' }}>
+  return tree.length > 0 ? (
+    <AccordionRoot index={0} isNestedFirst={true} style={{ border: 'none' }}>
       {tree.map((node, index, parrentArr) => {
         return renderNode({
           node,
@@ -195,9 +246,29 @@ const SelectCategoriesAccordion = ({ attribute, onChange }: any) => {
           updateChild,
           deleteChild,
           showAddBtn: index === parrentArr.length - 1,
+          index: 0,
         });
       })}
-    </Accordion.Root>
+    </AccordionRoot>
+  ) : (
+    <AddParentButtonWrapper>
+      <AddParentButton
+        onClick={() =>
+          setPassedTree((prev: Node[]) => [
+            ...prev,
+            {
+              id: `node-${Date.now()}`,
+              label: 'Category',
+              checked: false,
+              children: [],
+            },
+          ])
+        }
+      >
+        <Plus />
+      </AddParentButton>
+      <p>Add new category</p>
+    </AddParentButtonWrapper>
   );
 };
 
