@@ -229,7 +229,9 @@ const SelectCategories = () => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const selectedCategories = flattenSelectedCategories(categories, selected);
+  const selectedCategories = flattenSelectedCategories(categories, selected).filter((category) =>
+    selected.includes(category.id)
+  );
 
   const handleSelect = (category: CategoryNode) => {
     const categoryIds = getAllSubcategoryIds(category);
