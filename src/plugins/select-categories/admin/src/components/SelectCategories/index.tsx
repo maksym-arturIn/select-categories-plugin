@@ -1,8 +1,20 @@
 import { useState, useRef, useEffect, FC } from 'react';
-import { TextInput } from '@strapi/design-system';
-import { Menu, Option, OptionInner, Wrapper } from './StyledComponents';
+import {
+  Chevron,
+  Input,
+  InputWrapper,
+  Menu,
+  Option,
+  OptionInner,
+  Select,
+  SelectedCategoriesMenu,
+  SelectedCategory,
+  Wrapper,
+} from './StyledComponents';
 import { CategoryNode } from '../CategoriesAccordion';
 import { Checkbox } from '@strapi/design-system';
+import { IconButton } from '@strapi/design-system';
+import { ChevronDown, Cross } from '@strapi/icons';
 
 const categories = [
   {
@@ -141,33 +153,71 @@ const getAllSubcategoryIds = (category: CategoryNode) => {
   return ids;
 };
 
+const flattenSelectedCategories = (
+  categories: CategoryNode[],
+  selected: string[]
+): CategoryNode[] => {
+  return categories.reduce<CategoryNode[]>((acc, category) => {
+    const filteredSubcategories = flattenSelectedCategories(category.subcategories, selected);
+
+    if (selected.includes(category.id) || filteredSubcategories.length > 0) {
+      acc.push({ ...category, subcategories: [] });
+    }
+
+    return acc.concat(filteredSubcategories);
+  }, []);
+};
+
 type RenderOptionProps = {
   category: CategoryNode;
   handleSelect: (category: CategoryNode) => void;
   selected: string[];
+  selectable?: boolean;
+  isFirst?: boolean;
 };
 
-const RenderOption: FC<RenderOptionProps> = ({ category, handleSelect, selected }) => {
+const RenderOption: FC<RenderOptionProps> = ({
+  category,
+  handleSelect,
+  selected,
+  selectable = true,
+  isFirst = false,
+}) => {
   const isSelected = selected.includes(category.id);
-
   const checked = category.subcategories.length > 0 && isSelected ? 'indeterminate' : isSelected;
+  const hasSubcategories = category.subcategories.length > 0;
 
   return (
-    <Option>
-      <OptionInner checked={Boolean(checked)}>
-        <Checkbox
-          value={category.id}
-          checked={checked}
-          onCheckedChange={() => handleSelect(category)}
-          style={{ display: 'grid' }}
-        >
-          {category.name}
-        </Checkbox>
+    <Option isFirst={isFirst}>
+      <OptionInner checked={Boolean(checked)} selectable={selectable}>
+        {selectable ? (
+          <Checkbox
+            value={category.id}
+            checked={checked}
+            onCheckedChange={() => handleSelect(category)}
+          >
+            {category.name}
+          </Checkbox>
+        ) : (
+          <SelectedCategory>
+            <span>{category.name}</span>
+            <IconButton onClick={() => handleSelect(category)}>
+              <Cross />
+            </IconButton>
+          </SelectedCategory>
+        )}
       </OptionInner>
 
-      {category.subcategories.length > 0 &&
+      {hasSubcategories &&
         category.subcategories.map((child) => (
-          <RenderOption category={child} handleSelect={handleSelect} selected={selected} />
+          <RenderOption
+            key={child.id}
+            category={child}
+            handleSelect={handleSelect}
+            selected={selected}
+            selectable={selectable}
+            isFirst={false}
+          />
         ))}
     </Option>
   );
@@ -178,6 +228,8 @@ const SelectCategories = () => {
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const selectedCategories = flattenSelectedCategories(categories, selected);
 
   const handleSelect = (category: CategoryNode) => {
     const categoryIds = getAllSubcategoryIds(category);
@@ -204,15 +256,22 @@ const SelectCategories = () => {
 
   return (
     <Wrapper ref={menuRef}>
-      <TextInput
-        placeholder="Select category"
-        value={search}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-        onFocus={() => setIsOpen(true)}
-      />
+      <Select onClick={() => setIsOpen(true)}>
+        <span>Select categories...</span>
+        <Chevron isOpen={isOpen}>
+          <ChevronDown />
+        </Chevron>
+      </Select>
 
       {isOpen && (
         <Menu>
+          <InputWrapper>
+            <Input
+              placeholder="Select category"
+              value={search}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+            />
+          </InputWrapper>
           {filteredOptions.length > 0 ? (
             filteredOptions.map((category) => (
               <RenderOption
@@ -220,12 +279,29 @@ const SelectCategories = () => {
                 category={category}
                 handleSelect={handleSelect}
                 selected={selected}
+                selectable
+                isFirst
               />
             ))
           ) : (
-            <div style={{ padding: '8px', textAlign: 'center' }}>Ничего не найдено</div>
+            <div style={{ padding: '8px', textAlign: 'center' }}>Not found...</div>
           )}
         </Menu>
+      )}
+
+      {!isOpen && selectedCategories.length > 0 && (
+        <SelectedCategoriesMenu>
+          {selectedCategories.map((category) => (
+            <RenderOption
+              key={category.id}
+              category={category}
+              handleSelect={handleSelect}
+              selected={selected}
+              selectable={false}
+              isFirst={true}
+            />
+          ))}
+        </SelectedCategoriesMenu>
       )}
     </Wrapper>
   );
