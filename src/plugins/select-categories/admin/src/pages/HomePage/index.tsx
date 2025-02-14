@@ -5,7 +5,9 @@ import { useFetchClient } from '@strapi/strapi/admin';
 import { TextFieldsBox, Header, Page, SaveButton, Title } from './StyledComponents';
 import { TextField, CategoriesAccordion } from '../../components';
 import { PLUGIN_ID } from '../../pluginId';
-import type { IStrapiPayload, ICategoryTree, ICategory } from '../../types';
+import type { IStrapiPayload, ICategoryTree } from '../../types';
+import { useNotification } from '@strapi/strapi/admin';
+import { dequal } from 'dequal';
 
 const initialValues: ICategoryTree = {
   title: '',
@@ -15,7 +17,9 @@ const initialValues: ICategoryTree = {
 
 const HomePage = () => {
   const client = useFetchClient();
-  const [tree, setTree] = useState<ICategoryTree>();
+  const [tree, setTree] = useState<ICategoryTree>(initialValues);
+  const [initializeValues, setInitializeValues] = useState(initialValues);
+  const { toggleNotification } = useNotification();
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -31,6 +35,11 @@ const HomePage = () => {
 
           console.log('POST data', data);
           setTree(data);
+
+          toggleNotification({
+            type: 'success',
+            message: 'Success update',
+          });
           return;
         }
 
@@ -42,9 +51,18 @@ const HomePage = () => {
 
         console.log('PUT data', updatedData);
 
+        toggleNotification({
+          type: 'success',
+          message: 'Success update',
+        });
+
         setTree(updatedData);
         return;
-      } catch (error) {
+      } catch (error: any) {
+        toggleNotification({
+          type: 'danger',
+          message: error.message,
+        });
         console.error(error);
       }
     },
@@ -64,13 +82,14 @@ const HomePage = () => {
     //   // Updated object
     // });
     // const categoryTree = await client.del(`${PLUGIN_ID}/category-trees/${id}`);
-    console.log('categoryTree', categoryTree);
 
     if (!categoryTree) {
       setTree(initialValues);
+      setInitializeValues(initialValues);
       return;
     }
 
+    setInitializeValues(categoryTree);
     setTree(categoryTree);
   };
 
@@ -78,17 +97,16 @@ const HomePage = () => {
     getCategoryTree();
   }, []);
 
-  useEffect(() => {
-    if (tree) {
-      console.log('tree', tree);
-    }
-  }, [tree]);
+  const disabled = dequal(
+    { ...initializeValues, title: formik.values['title'], slug: formik.values['slug'] },
+    tree
+  );
 
   return (
     <Page>
       <Header>
         <Title>Select categories</Title>
-        <SaveButton type="submit" onClick={formik.handleSubmit}>
+        <SaveButton disabled={disabled} type="submit" onClick={formik.handleSubmit}>
           <Check />
           Save
         </SaveButton>

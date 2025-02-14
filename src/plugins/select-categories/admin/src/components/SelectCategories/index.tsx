@@ -8,18 +8,14 @@ import {
   SelectedCategoriesMenu,
   Wrapper,
 } from './StyledComponents';
-import { ICategory } from 'src/types';
 import { RenderSelectOption } from './RenderSelectOption';
 import { useFetchClient } from '@strapi/strapi/admin';
-import type { IStrapiPayload, ICategoryTree } from '../../types';
+import type { IStrapiPayload, ICategoryTree, ICategory } from '../../types';
 import { PLUGIN_ID } from '../../pluginId';
 import { ChevronDown } from '@strapi/icons';
 
-const flattenSelectedCategories = (
-  categories: CategoryNode[],
-  selected: string[]
-): CategoryNode[] => {
-  return categories.reduce<CategoryNode[]>((acc, category) => {
+const flattenSelectedCategories = (categories: ICategory[], selected: string[]): ICategory[] => {
+  return categories.reduce<ICategory[]>((acc, category) => {
     const filteredSubcategories = flattenSelectedCategories(category.subcategories, selected);
 
     if (selected.includes(category.id) || filteredSubcategories.length > 0) {

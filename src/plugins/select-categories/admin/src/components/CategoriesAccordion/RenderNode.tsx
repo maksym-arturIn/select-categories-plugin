@@ -22,6 +22,8 @@ type RenderNodeParameters = {
   updateChildOrder: (id: string, direction?: number) => () => void;
   showAddBtn?: boolean;
   index: number;
+  currentIndex: number;
+  parentLength: number;
 };
 
 export const RenderNode = ({
@@ -33,6 +35,8 @@ export const RenderNode = ({
   updateChildOrder,
   showAddBtn,
   index,
+  currentIndex,
+  parentLength,
 }: RenderNodeParameters) => {
   const [valueName, setValueName] = useState(node.title);
   const [valueSlug, setValueSlug] = useState(node.slug);
@@ -97,13 +101,17 @@ export const RenderNode = ({
               {node.name}
             </Checkbox> */}
             <Actions>
-              <ActionButton onClick={updateChildOrder(node.id, -1)}>
-                <ArrowUp />
-              </ActionButton>
+              {currentIndex > 0 && (
+                <ActionButton onClick={updateChildOrder(node.id, -1)}>
+                  <ArrowUp />
+                </ActionButton>
+              )}
 
-              <ActionButton onClick={updateChildOrder(node.id)}>
-                <ArrowDown />
-              </ActionButton>
+              {currentIndex + 1 < parentLength && (
+                <ActionButton onClick={updateChildOrder(node.id)}>
+                  <ArrowDown />
+                </ActionButton>
+              )}
 
               <Modal.Root>
                 <Modal.Trigger>
@@ -138,7 +146,7 @@ export const RenderNode = ({
         <Accordion.Content>
           {node.subcategories.length > 0 && (
             <AccordionRoot index={index} isNestedFirst={false} style={{ paddingTop: '1.5rem' }}>
-              {node.subcategories.map((node) => (
+              {node.subcategories.map((node, currentNestedIndex, parentArr) => (
                 <RenderNode
                   key={node.id}
                   node={node}
@@ -149,6 +157,8 @@ export const RenderNode = ({
                   updateChildOrder={updateChildOrder}
                   index={index + 1}
                   showAddBtn={false}
+                  currentIndex={currentNestedIndex}
+                  parentLength={parentArr.length}
                 />
               ))}
             </AccordionRoot>

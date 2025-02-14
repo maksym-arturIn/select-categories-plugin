@@ -184,8 +184,10 @@ export const CategoriesAccordion: FC<Props> = ({ passedTree, setPassedTree }) =>
             deleteChild={deleteChild}
             updateChildOrder={updateChildOrder}
             index={0}
+            currentIndex={index}
             showAddBtn={index === parentArr.length - 1}
             key={node.id}
+            parentLength={parentArr.length}
           />
         ))}
       </AccordionRoot>
