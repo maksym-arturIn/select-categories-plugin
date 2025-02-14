@@ -1,5 +1,5 @@
-import service from './service';
+import categoryTree from './category-tree';
 
 export default {
-  service,
+  categoryTree,
 };

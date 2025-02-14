@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check } from '@strapi/icons';
 import { useFormik } from 'formik';
-
-import { TextFieldsBox, Header, Page, SaveButton, Title, Box } from './StyledComponents';
+import { useFetchClient } from '@strapi/strapi/admin';
+import { TextFieldsBox, Header, Page, SaveButton, Title } from './StyledComponents';
 import { TextField, CategoriesAccordion, CategoryNode } from '../../components';
+import { PLUGIN_ID } from '../../pluginId';
 
 const initialValues = {
   name: '',
@@ -11,6 +12,7 @@ const initialValues = {
 };
 
 const HomePage = () => {
+  const client = useFetchClient();
   const [tree, setTree] = useState<CategoryNode[]>([
     {
       id: '1',
@@ -32,6 +34,22 @@ const HomePage = () => {
       });
     },
   });
+
+  const getCategoryTree = async () => {
+    const categoryTree = await client.get(`${PLUGIN_ID}/category-trees`);
+    // const categoryTree = await client.post(`${PLUGIN_ID}/category-trees/${id}`, {
+    //   // New object
+    // });
+    // const categoryTree = await client.put(`${PLUGIN_ID}/category-trees`, {
+    //   // Updated object
+    // });
+    // const categoryTree = await client.del(`${PLUGIN_ID}/category-trees/${id}`);
+    console.log('categoryTree', categoryTree);
+  };
+
+  useEffect(() => {
+    getCategoryTree();
+  }, []);
 
   return (
     <Page>
