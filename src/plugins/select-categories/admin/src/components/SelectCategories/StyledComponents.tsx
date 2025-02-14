@@ -31,20 +31,21 @@ export const Menu = styled.div`
   z-index: 1000;
 `;
 
-export const Option = styled.div<{ isFirst: boolean }>`
-  padding: 0.4rem 0 0 ${({ isFirst }) => (isFirst ? '2' : '3')}rem;
+export const Option = styled.div<{ $isFirst: boolean; $isFlat: boolean }>`
+  padding: 0.4rem 0 0 ${({ $isFirst }) => ($isFirst ? '2' : '3')}rem;
+  padding-left: ${({ $isFlat }) => ($isFlat ? '0' : '2rem')};
 `;
 
-export const OptionInner = styled.div<{ checked: boolean; selectable: boolean }>`
+export const OptionInner = styled.div<{ $checked: boolean; $selectable: boolean }>`
   padding: 0rem 1rem;
   border-radius: 0.4rem;
-  background-color: ${({ checked, selectable }) =>
-    checked && selectable ? 'rgba(72, 69, 255, 0.24)' : 'transparent'};
-  border: ${({ selectable }) => (!selectable ? '1px solid #dcdce4' : 'none')};
+  background-color: ${({ $checked, $selectable }) =>
+    $checked && $selectable ? 'rgba(72, 69, 255, 0.24)' : 'transparent'};
+  border: ${({ $selectable }) => (!$selectable ? '1px solid #dcdce4' : 'none')};
 
   &:hover {
-    background-color: ${({ selectable }) =>
-      selectable ? 'rgba(72, 69, 255, 0.24)' : 'rgba(220, 220, 228, 0.4)'};
+    background-color: ${({ $selectable }) =>
+      $selectable ? 'rgba(72, 69, 255, 0.24)' : 'rgba(220, 220, 228, 0.4)'};
   }
 
   & > div > label {
@@ -53,7 +54,20 @@ export const OptionInner = styled.div<{ checked: boolean; selectable: boolean }>
   }
 `;
 
-export const Select = styled.div`
+export const Label = styled.label`
+  font-size: 1.4rem;
+  margin-bottom: 2px;
+  display: block;
+  color: #32324d;
+`;
+
+export const Error = styled.div`
+  color: #ff0000;
+  font-size: 1.2rem;
+  margin-top: 2px;
+`;
+
+export const Select = styled.div<{ disabled?: boolean }>`
   width: 100%;
   font-size: 1.4rem;
   border: 1px solid #dcdce4;
@@ -63,6 +77,10 @@ export const Select = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 40px;
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
+  background-color: ${({ disabled }) => (disabled ? '#f5f5f5' : 'white')};
 `;
 
 export const SelectedCategoriesMenu = styled.div`
@@ -84,7 +102,7 @@ export const SelectedCategory = styled.div`
   font-size: 1.4rem;
 `;
 
-export const Chevron = styled.div<{ isOpen: boolean }>`
+export const Chevron = styled.div<{ $isOpen: boolean }>`
   transition: all 300ms ease;
-  transform: rotate(${({ isOpen }) => (isOpen ? '180' : '0')}deg);
+  transform: rotate(${({ $isOpen }) => ($isOpen ? '180' : '0')}deg);
 `;

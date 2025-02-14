@@ -15,3 +15,12 @@ export interface ICategory {
   slug: string;
   subcategories: ICategory[];
 }
+
+export interface ISelectCategoriesProps {
+  name: string;
+  onChange: (params: { target: { name: string; value: any[] } }) => void;
+  value?: any[];
+  disabled?: boolean;
+  error?: string;
+  required?: boolean;
+}

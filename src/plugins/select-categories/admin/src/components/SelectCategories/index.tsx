@@ -3,67 +3,37 @@ import {
   Chevron,
   Input,
   InputWrapper,
+  Label,
   Menu,
   Select,
-  SelectedCategoriesMenu,
+  Error,
   Wrapper,
+  SelectedCategoriesMenu,
 } from './StyledComponents';
 import { RenderSelectOption } from './RenderSelectOption';
 import { useFetchClient } from '@strapi/strapi/admin';
-import type { IStrapiPayload, ICategoryTree, ICategory } from '../../types';
+import type { IStrapiPayload, ICategoryTree, ISelectCategoriesProps, ICategory } from '../../types';
 import { PLUGIN_ID } from '../../pluginId';
 import { ChevronDown } from '@strapi/icons';
+import { filterCategories, getAllSubcategoryIds } from '../../utils/helpers';
 
-const flattenSelectedCategories = (categories: ICategory[], selected: string[]): ICategory[] => {
-  return categories.reduce<ICategory[]>((acc, category) => {
-    const filteredSubcategories = flattenSelectedCategories(category.subcategories, selected);
-
-    if (selected.includes(category.id) || filteredSubcategories.length > 0) {
-      acc.push({ ...category, subcategories: [] });
-    }
-
-    return acc.concat(filteredSubcategories);
-  }, []);
-};
-
-const filterCategories = (categories: ICategory[], search: string): ICategory[] => {
-  return categories
-    .map((category) => {
-      const filteredChildren = filterCategories(category.subcategories, search);
-
-      if (
-        category.title.toLowerCase().includes(search.toLowerCase()) ||
-        filteredChildren.length > 0
-      ) {
-        return { ...category, subcategories: filteredChildren };
-      }
-
-      return null;
-    })
-    .filter(Boolean) as ICategory[];
-};
-
-const getAllSubcategoryIds = (category: ICategory) => {
-  let ids = [category.id];
-  category.subcategories.forEach((sub) => {
-    ids = ids.concat(getAllSubcategoryIds(sub));
-  });
-  return ids;
-};
-
-const SelectCategories = () => {
+const SelectCategories = ({
+  name,
+  onChange,
+  value,
+  disabled,
+  error,
+  required,
+}: ISelectCategoriesProps) => {
   const client = useFetchClient();
 
   const [categories, setCategories] = useState<ICategory[]>([]);
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const filteredOptions = filterCategories(categories, search);
-  const selectedCategories = flattenSelectedCategories(categories, selected).filter((category) =>
-    selected.includes(category.id)
-  );
 
   const getCategoryTree = async () => {
     const { data = [] } = await client.get<IStrapiPayload<ICategoryTree>>(
@@ -81,12 +51,29 @@ const SelectCategories = () => {
 
   const handleSelect = (category: ICategory) => {
     const categoryIds = getAllSubcategoryIds(category);
-    setSelected((prev) => {
-      const isSelected = prev.includes(category.id);
-      return isSelected
-        ? prev.filter((id) => !categoryIds.includes(id))
-        : [...prev, ...categoryIds];
-    });
+
+    const newSelectedIds = selectedIds.includes(category.id)
+      ? selectedIds.filter((id) => !categoryIds.includes(id))
+      : [...selectedIds, ...categoryIds];
+
+    setSelectedIds(newSelectedIds);
+
+    // Create tree structure from selected IDs
+    const selectedCategories = categories
+      .map((cat) => {
+        if (newSelectedIds.includes(cat.id)) {
+          return {
+            ...cat,
+            subcategories: cat.subcategories
+              .filter((sub) => newSelectedIds.includes(sub.id))
+              .map((sub) => ({ ...sub, subcategories: [] })),
+          };
+        }
+        return null;
+      })
+      .filter(Boolean) as ICategory[];
+
+    onChange?.({ target: { name, value: selectedCategories } });
   };
 
   useEffect(() => {
@@ -101,18 +88,39 @@ const SelectCategories = () => {
   }, []);
 
   useEffect(() => {
+    console.log('value', value);
+    if (value) {
+      const extractIds = (cats: ICategory[]): string[] => {
+        return cats.reduce<string[]>((acc, cat) => {
+          return [...acc, cat.id, ...extractIds(cat.subcategories)];
+        }, []);
+      };
+
+      const newSelectedIds = extractIds(value);
+      setSelectedIds(newSelectedIds);
+    }
+
     getCategoryTree();
   }, []);
 
   return (
     <Wrapper ref={menuRef}>
-      <Select onClick={() => setIsOpen(true)}>
-        <span>Select categories...</span>
+      <div>
+        <Label>
+          {name}
+          {required && <span style={{ color: 'red' }}> *</span>}
+        </Label>
 
-        <Chevron isOpen={isOpen}>
-          <ChevronDown />
-        </Chevron>
-      </Select>
+        <Select disabled={disabled} onClick={() => !disabled && setIsOpen(true)}>
+          <span>Select categories...</span>
+
+          <Chevron $isOpen={isOpen}>
+            <ChevronDown />
+          </Chevron>
+        </Select>
+
+        {error && <Error>{error}</Error>}
+      </div>
 
       {isOpen && (
         <Menu>
@@ -129,7 +137,7 @@ const SelectCategories = () => {
                 key={category.id}
                 category={category}
                 handleSelect={handleSelect}
-                selected={selected}
+                selected={selectedIds}
                 selectable
                 isFirst
               />
@@ -140,16 +148,17 @@ const SelectCategories = () => {
         </Menu>
       )}
 
-      {!isOpen && selectedCategories.length > 0 && (
+      {!isOpen && !!value?.length && (
         <SelectedCategoriesMenu>
-          {selectedCategories.map((category) => (
+          {(value || []).map((category) => (
             <RenderSelectOption
               key={category.id}
               category={category}
               handleSelect={handleSelect}
-              selected={selected}
+              selected={selectedIds}
               selectable={false}
-              isFirst={true}
+              isFirst
+              isFlat
             />
           ))}
         </SelectedCategoriesMenu>

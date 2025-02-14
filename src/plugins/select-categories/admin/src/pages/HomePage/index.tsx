@@ -75,14 +75,6 @@ const HomePage = () => {
 
     const [categoryTree] = data as ICategoryTree[];
 
-    // const categoryTree = await client.post(`${PLUGIN_ID}/category-trees/${id}`, {
-    //   // New object
-    // });
-    // const categoryTree = await client.put(`${PLUGIN_ID}/category-trees`, {
-    //   // Updated object
-    // });
-    // const categoryTree = await client.del(`${PLUGIN_ID}/category-trees/${id}`);
-
     if (!categoryTree) {
       setTree(initialValues);
       setInitializeValues(initialValues);

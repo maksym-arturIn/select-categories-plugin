@@ -11,6 +11,7 @@ type RenderOptionProps = {
   selected: string[];
   selectable?: boolean;
   isFirst?: boolean;
+  isFlat?: boolean;
 };
 
 export const RenderSelectOption: FC<RenderOptionProps> = ({
@@ -19,14 +20,15 @@ export const RenderSelectOption: FC<RenderOptionProps> = ({
   selected,
   selectable = true,
   isFirst = false,
+  isFlat = false,
 }) => {
   const isSelected = selected.includes(category.id);
   const checked = category.subcategories.length > 0 && isSelected ? 'indeterminate' : isSelected;
   const hasSubcategories = category.subcategories.length > 0;
 
   return (
-    <Option isFirst={isFirst}>
-      <OptionInner checked={Boolean(checked)} selectable={selectable}>
+    <Option $isFirst={isFirst} $isFlat={isFlat}>
+      <OptionInner $checked={Boolean(checked)} $selectable={selectable}>
         {selectable ? (
           <Checkbox
             value={category.id}
