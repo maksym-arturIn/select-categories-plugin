@@ -1,10 +1,10 @@
 {
   "kind": "collectionType",
-  "collectionName": "category",
+  "collectionName": "category-tree",
   "info": {
-    "singularName": "category",
-    "pluralName": "categories",
-    "displayName": "Category",
+    "singularName": "category-tree",
+    "pluralName": "category-trees",
+    "displayName": "Category Tree",
     "description": ""
   },
   "options": {
@@ -27,8 +27,10 @@
       "type": "string",
       "required": true
     },
-    "subcategories": {
-      "type": "json"
+    "data": {
+      "type": "json",
+      "required": true,
+      "default": []
     }
   }
 }

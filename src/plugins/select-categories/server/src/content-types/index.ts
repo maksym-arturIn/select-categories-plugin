@@ -1,5 +1,5 @@
-import categorySchema from './category/schema.json';
+import categoryTreeSchema from './category-tree/schema.json';
 
 export default {
-  category: { schema: categorySchema },
+  'category-tree': { schema: categoryTreeSchema },
 };

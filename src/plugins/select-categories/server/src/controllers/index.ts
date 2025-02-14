@@ -1,5 +1,5 @@
-import controller from './controller';
+import categoryTree from './category-tree';
 
 export default {
-  controller,
+  categoryTree,
 };
