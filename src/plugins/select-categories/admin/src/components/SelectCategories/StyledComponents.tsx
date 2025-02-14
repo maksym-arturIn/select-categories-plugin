@@ -25,7 +25,7 @@ export const Menu = styled.div`
   background: white;
   border: 0.1rem solid #ccc;
   border-radius: 0.4rem;
-  max-height: 40rem;
+  max-height: 80rem;
   overflow-y: auto;
   padding-right: 2rem;
   z-index: 1000;

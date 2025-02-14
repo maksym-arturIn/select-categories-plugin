@@ -3,40 +3,60 @@ import { Check } from '@strapi/icons';
 import { useFormik } from 'formik';
 import { useFetchClient } from '@strapi/strapi/admin';
 import { TextFieldsBox, Header, Page, SaveButton, Title } from './StyledComponents';
-import { TextField, CategoriesAccordion, CategoryNode } from '../../components';
+import { TextField, CategoriesAccordion } from '../../components';
 import { PLUGIN_ID } from '../../pluginId';
+import type { IStrapiPayload, ICategoryTree, ICategory } from '../../types';
 
-const initialValues = {
-  name: '',
+const initialValues: ICategoryTree = {
+  title: '',
   slug: '',
+  data: [],
 };
 
 const HomePage = () => {
   const client = useFetchClient();
-  const [tree, setTree] = useState<CategoryNode[]>([
-    {
-      id: '1',
-      name: 'Category',
-      slug: 'Slug Category',
-      checked: false,
-      subcategories: [],
-    },
-  ]);
-
-  console.log('tree', tree);
+  const [tree, setTree] = useState<ICategoryTree>();
 
   const formik = useFormik({
-    initialValues,
-    onSubmit: (values) => {
-      console.log({
-        ...values,
-        tree,
-      });
+    enableReinitialize: true,
+    initialValues: { ...initialValues, ...tree },
+    onSubmit: async ({ title, slug }: any = { title: '', slug: '' }) => {
+      try {
+        if (!tree?.id) {
+          const { data } = await client.post(`${PLUGIN_ID}/category-trees`, {
+            ...tree,
+            title,
+            slug,
+          });
+
+          console.log('POST data', data);
+          setTree(data);
+          return;
+        }
+
+        const { data: updatedData } = await client.put(`${PLUGIN_ID}/category-trees/${tree.id}`, {
+          ...tree,
+          title,
+          slug,
+        });
+
+        console.log('PUT data', updatedData);
+
+        setTree(updatedData);
+        return;
+      } catch (error) {
+        console.error(error);
+      }
     },
   });
 
   const getCategoryTree = async () => {
-    const categoryTree = await client.get(`${PLUGIN_ID}/category-trees`);
+    const { data = [] } = await client.get<IStrapiPayload<ICategoryTree>>(
+      `${PLUGIN_ID}/category-trees`
+    );
+
+    const [categoryTree] = data as ICategoryTree[];
+
     // const categoryTree = await client.post(`${PLUGIN_ID}/category-trees/${id}`, {
     //   // New object
     // });
@@ -45,11 +65,24 @@ const HomePage = () => {
     // });
     // const categoryTree = await client.del(`${PLUGIN_ID}/category-trees/${id}`);
     console.log('categoryTree', categoryTree);
+
+    if (!categoryTree) {
+      setTree(initialValues);
+      return;
+    }
+
+    setTree(categoryTree);
   };
 
   useEffect(() => {
     getCategoryTree();
   }, []);
+
+  useEffect(() => {
+    if (tree) {
+      console.log('tree', tree);
+    }
+  }, [tree]);
 
   return (
     <Page>
@@ -60,10 +93,12 @@ const HomePage = () => {
           Save
         </SaveButton>
       </Header>
+
       <TextFieldsBox>
-        <TextField label="Name" name={'name'} formik={formik} />
+        <TextField label="Name" name={'title'} formik={formik} />
         <TextField label="Slug" name={'slug'} formik={formik} />
       </TextFieldsBox>
+
       <CategoriesAccordion passedTree={tree} setPassedTree={setTree} />
     </Page>
   );
