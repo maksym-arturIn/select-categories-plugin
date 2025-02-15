@@ -57,15 +57,18 @@ export const RenderNode = ({
     []
   );
 
-  const handleBlur = useCallback(
+  const handleBlur =
     (updateValue: keyof ICategory) =>
-      ({ target }: React.FocusEvent<HTMLInputElement, Element>) => {
-        if (node[updateValue] === target.value) return;
+    ({ target }: React.FocusEvent<HTMLInputElement, Element>) => {
+      if (node[updateValue] === target.value) return;
 
-        updateChild(node.id, { ...node, [updateValue]: target.value });
-      },
-    []
-  );
+      updateChild(node.id, {
+        ...node,
+        title: valueName,
+        slug: valueSlug,
+        [updateValue]: target.value,
+      });
+    };
 
   const marginLeft = useMemo(() => (index > 0 ? index + 30 : 5), []);
 
@@ -145,7 +148,7 @@ export const RenderNode = ({
 
         <Accordion.Content>
           {node.subcategories.length > 0 && (
-            <AccordionRoot index={index} isNestedFirst={false} style={{ paddingTop: '1.5rem' }}>
+            <AccordionRoot index={index} $isNestedFirst={false} style={{ paddingTop: '1.5rem' }}>
               {node.subcategories.map((node, currentNestedIndex, parentArr) => (
                 <RenderNode
                   key={node.id}

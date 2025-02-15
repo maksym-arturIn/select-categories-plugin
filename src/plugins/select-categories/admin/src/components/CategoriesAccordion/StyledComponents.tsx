@@ -31,7 +31,7 @@ export const AddParentButtonWrapper = styled.div`
   margin-left: 0.5rem;
 `;
 
-export const AccordionRoot = styled(Accordion.Root)<{ isNestedFirst: boolean; index: number }>`
+export const AccordionRoot = styled(Accordion.Root)<{ $isNestedFirst: boolean; index: number }>`
   border: none;
   display: flex;
   flex-direction: column;
@@ -46,8 +46,8 @@ export const AccordionRoot = styled(Accordion.Root)<{ isNestedFirst: boolean; in
     width: 0.5rem;
     height: 100%;
     background-color: rgba(72, 69, 255, 0.66);
-    bottom: ${({ isNestedFirst }) => (isNestedFirst ? 0 : '-1.5rem')};
-    left: ${({ isNestedFirst, index }) => (isNestedFirst ? '2.24rem' : `${42 + index}px`)};
+    bottom: ${({ $isNestedFirst }) => ($isNestedFirst ? 0 : '-1.5rem')};
+    left: ${({ $isNestedFirst, index }) => ($isNestedFirst ? '2.24rem' : `${42 + index}px`)};
     z-index: -1;
   }
 `;

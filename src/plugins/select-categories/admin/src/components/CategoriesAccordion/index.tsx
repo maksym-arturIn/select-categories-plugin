@@ -174,7 +174,7 @@ export const CategoriesAccordion: FC<Props> = ({ passedTree, setPassedTree }) =>
 
   return passedTree?.data?.length > 0 ? (
     <>
-      <AccordionRoot index={0} isNestedFirst={true} style={{ border: 'none' }}>
+      <AccordionRoot index={0} $isNestedFirst={true} style={{ border: 'none' }}>
         {(passedTree.data || []).map((node, index, parentArr) => (
           <RenderNode
             node={node}
