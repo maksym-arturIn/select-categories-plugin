@@ -12,6 +12,7 @@ import {
   AddParentButtonWrapper,
   AddParentButton,
 } from './StyledComponents';
+import { Field } from '@strapi/design-system';
 
 type RenderNodeParameters = {
   node: ICategory;
@@ -24,6 +25,7 @@ type RenderNodeParameters = {
   index: number;
   currentIndex: number;
   parentLength: number;
+  hasEmptyFields: boolean;
 };
 
 export const RenderNode = ({
@@ -37,6 +39,7 @@ export const RenderNode = ({
   index,
   currentIndex,
   parentLength,
+  hasEmptyFields,
 }: RenderNodeParameters) => {
   const [valueName, setValueName] = useState(node.title);
   const [valueSlug, setValueSlug] = useState(node.slug);
@@ -79,7 +82,7 @@ export const RenderNode = ({
           <Accordion.Trigger style={{ display: 'block', width: 'auto' }} />
 
           <TextFields>
-            <FieldRoot>
+            <FieldRoot error={hasEmptyFields && valueName === ''}>
               <TextInput
                 name={node.id}
                 id={node.id}
@@ -87,10 +90,12 @@ export const RenderNode = ({
                 value={valueName}
                 onChange={handleChange(setValueName)}
                 onBlur={handleBlur('title')}
+                error={hasEmptyFields && valueName === ''}
               />
+              <Field.Error />
             </FieldRoot>
 
-            <FieldRoot>
+            <FieldRoot error={hasEmptyFields && valueSlug === ''}>
               <TextInput
                 name={node.id}
                 id={node.id}
@@ -98,7 +103,9 @@ export const RenderNode = ({
                 value={valueSlug}
                 onChange={handleChange(setValueSlug)}
                 onBlur={handleBlur('slug')}
+                error
               />
+              <Field.Error />
             </FieldRoot>
             {/* <Checkbox checked={node.checked} onCheckedChange={() => handleCheckboxChange(node)}>
               {node.name}
@@ -162,6 +169,7 @@ export const RenderNode = ({
                   showAddBtn={false}
                   currentIndex={currentNestedIndex}
                   parentLength={parentArr.length}
+                  hasEmptyFields={hasEmptyFields}
                 />
               ))}
             </AccordionRoot>

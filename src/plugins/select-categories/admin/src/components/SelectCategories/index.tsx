@@ -17,7 +17,7 @@ import { PLUGIN_ID } from '../../pluginId';
 import { ChevronDown } from '@strapi/icons';
 import {
   filterCategories,
-  flattenSelectedCategories,
+  filterSelectedCategories,
   getAllSubcategoryIds,
 } from '../../utils/helpers';
 
@@ -39,8 +39,8 @@ const SelectCategories = ({
 
   const filteredOptions = filterCategories(categories, search);
 
-  const selectedCategories = flattenSelectedCategories(categories, selectedIds).filter((category) =>
-    selectedIds.includes(category.id)
+  const selectedCategories = filterSelectedCategories(categories, selectedIds).filter(
+    (category) => selectedIds.includes(category.id) && !!category.title
   );
 
   const getCategoryTree = async () => {
@@ -165,7 +165,6 @@ const SelectCategories = ({
               selected={selectedIds}
               selectable={false}
               isFirst
-              isFlat={false}
             />
           ))}
         </SelectedCategoriesMenu>

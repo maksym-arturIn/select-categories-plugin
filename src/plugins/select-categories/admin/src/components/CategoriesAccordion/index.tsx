@@ -8,9 +8,10 @@ import { RenderNode } from './RenderNode';
 type Props = {
   passedTree: ICategoryTree;
   setPassedTree: React.Dispatch<React.SetStateAction<ICategoryTree>>;
+  hasEmptyFields: boolean;
 };
 
-export const CategoriesAccordion: FC<Props> = ({ passedTree, setPassedTree }) => {
+export const CategoriesAccordion: FC<Props> = ({ passedTree, setPassedTree, hasEmptyFields }) => {
   const updateChild = useCallback((id: string, updatedChild: ICategory) => {
     const callback = (prevTree: ICategoryTree) => {
       const categoryArray = structuredClone(prevTree.data);
@@ -188,6 +189,7 @@ export const CategoriesAccordion: FC<Props> = ({ passedTree, setPassedTree }) =>
             showAddBtn={index === parentArr.length - 1}
             key={node.id}
             parentLength={parentArr.length}
+            hasEmptyFields={hasEmptyFields}
           />
         ))}
       </AccordionRoot>

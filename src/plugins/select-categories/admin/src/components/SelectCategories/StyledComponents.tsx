@@ -25,15 +25,14 @@ export const Menu = styled.div`
   background: white;
   border: 0.1rem solid #ccc;
   border-radius: 0.4rem;
-  max-height: 80rem;
+  max-height: 40rem;
   overflow-y: auto;
   padding-right: 2rem;
   z-index: 1000;
 `;
 
-export const Option = styled.div<{ $isFirst: boolean; $isFlat: boolean }>`
+export const Option = styled.div<{ $isFirst: boolean }>`
   padding: 0.4rem 0 0 ${({ $isFirst }) => ($isFirst ? '2' : '3')}rem;
-  padding-left: ${({ $isFlat }) => ($isFlat ? '0' : '2rem')};
 `;
 
 export const OptionInner = styled.div<{

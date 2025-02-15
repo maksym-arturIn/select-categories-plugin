@@ -5,9 +5,10 @@ import { useFetchClient } from '@strapi/strapi/admin';
 import { TextFieldsBox, Header, Page, SaveButton, Title } from './StyledComponents';
 import { TextField, CategoriesAccordion } from '../../components';
 import { PLUGIN_ID } from '../../pluginId';
-import type { IStrapiPayload, ICategoryTree } from '../../types';
+import type { IStrapiPayload, ICategoryTree, ICategory } from '../../types';
 import { useNotification } from '@strapi/strapi/admin';
 import { dequal } from 'dequal';
+import { checkEmptyFields } from '../../utils/helpers';
 
 const initialValues: ICategoryTree = {
   title: '',
@@ -21,10 +22,25 @@ const HomePage = () => {
   const [initializeValues, setInitializeValues] = useState(initialValues);
   const { toggleNotification } = useNotification();
 
+  const [hasEmptyFields, setHasEmptyFields] = useState(false);
+
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: { ...initialValues, ...tree },
     onSubmit: async ({ title, slug }: any = { title: '', slug: '' }) => {
+      const hasErrors = checkEmptyFields(tree.data);
+
+      setHasEmptyFields(hasErrors);
+
+      if (hasErrors) {
+        toggleNotification({
+          type: 'danger',
+          message: 'Form has empty fields',
+          timeout: 5000,
+        });
+        return;
+      }
+
       try {
         if (!tree?.id) {
           const { data } = await client.post(`${PLUGIN_ID}/category-trees`, {
@@ -66,6 +82,8 @@ const HomePage = () => {
           message: error.message,
         });
         console.error(error);
+      } finally {
+        setHasEmptyFields(false);
       }
     },
   });
@@ -111,7 +129,11 @@ const HomePage = () => {
         <TextField label="Slug" name={'slug'} formik={formik} />
       </TextFieldsBox>
 
-      <CategoriesAccordion passedTree={tree} setPassedTree={setTree} />
+      <CategoriesAccordion
+        passedTree={tree}
+        setPassedTree={setTree}
+        hasEmptyFields={hasEmptyFields}
+      />
     </Page>
   );
 };
