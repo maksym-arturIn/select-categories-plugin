@@ -54,3 +54,26 @@ export const checkEmptyFields = (categories: ICategory[]): boolean => {
       !category.title.trim() || !category.slug.trim() || checkEmptyFields(category.subcategories)
   );
 };
+
+export const getParentIds = (categories: ICategory[], categoryId: string): string[] => {
+  const findPath = (nodes: ICategory[], targetId: string, path: string[] = []): string[] | null => {
+    for (const node of nodes) {
+      const newPath = [...path, node.id];
+
+      if (node.id === targetId) {
+        return newPath;
+      }
+
+      if (node.subcategories.length > 0) {
+        const result = findPath(node.subcategories, targetId, newPath);
+        if (result) {
+          return result;
+        }
+      }
+    }
+    return null;
+  };
+
+  const result = findPath(categories, categoryId);
+  return result ? result.slice(0, -1) : [];
+};

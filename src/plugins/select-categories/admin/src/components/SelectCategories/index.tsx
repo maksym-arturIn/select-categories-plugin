@@ -19,6 +19,7 @@ import {
   filterCategories,
   filterSelectedCategories,
   getAllSubcategoryIds,
+  getParentIds,
 } from '../../utils/helpers';
 
 const SelectCategories = ({
@@ -39,8 +40,8 @@ const SelectCategories = ({
 
   const filteredOptions = filterCategories(categories, search);
 
-  const selectedCategories = filterSelectedCategories(categories, selectedIds).filter(
-    (category) => selectedIds.includes(category.id) && !!category.title
+  const selectedCategories = filterSelectedCategories(categories, selectedIds).filter((category) =>
+    selectedIds.includes(category.id)
   );
 
   const getCategoryTree = async () => {
@@ -59,29 +60,17 @@ const SelectCategories = ({
 
   const handleSelect = (category: ICategory) => {
     const categoryIds = getAllSubcategoryIds(category);
+    const parentIds = getParentIds(categories, category.id);
 
     const newSelectedIds = selectedIds.includes(category.id)
       ? selectedIds.filter((id) => !categoryIds.includes(id))
-      : [...selectedIds, ...categoryIds];
+      : [...new Set([...selectedIds, ...categoryIds, ...parentIds])];
 
     setSelectedIds(newSelectedIds);
 
-    // Create tree structure from selected IDs
-    const selectedCategories = categories
-      .map((cat) => {
-        if (newSelectedIds.includes(cat.id)) {
-          return {
-            ...cat,
-            subcategories: cat.subcategories
-              .filter((sub) => newSelectedIds.includes(sub.id))
-              .map((sub) => ({ ...sub, subcategories: [] })),
-          };
-        }
-        return null;
-      })
-      .filter(Boolean) as ICategory[];
+    const value = filterSelectedCategories(categories, newSelectedIds);
 
-    onChange?.({ target: { name, value: selectedCategories } });
+    onChange?.({ target: { name, value } });
   };
 
   useEffect(() => {
