@@ -35,6 +35,7 @@ const HomePage = () => {
 
           console.log('POST data', data);
           setTree(data);
+          setInitializeValues(data);
 
           toggleNotification({
             type: 'success',
@@ -57,6 +58,7 @@ const HomePage = () => {
         });
 
         setTree(updatedData);
+        setInitializeValues(updatedData);
         return;
       } catch (error: any) {
         toggleNotification({
@@ -90,8 +92,8 @@ const HomePage = () => {
   }, []);
 
   const disabled = dequal(
-    { ...initializeValues, title: formik.values['title'], slug: formik.values['slug'] },
-    tree
+    { data: initializeValues.data, title: formik.values['title'], slug: formik.values['slug'] },
+    { data: tree.data, title: tree.title, slug: tree.slug }
   );
 
   return (

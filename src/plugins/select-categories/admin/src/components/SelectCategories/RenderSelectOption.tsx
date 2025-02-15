@@ -25,21 +25,23 @@ export const RenderSelectOption: FC<RenderOptionProps> = ({
   const isSelected = selected.includes(category.id);
   const checked = category.subcategories.length > 0 && isSelected ? 'indeterminate' : isSelected;
   const hasSubcategories = category.subcategories.length > 0;
+  const disabled = Boolean(!category.title);
 
   return (
     <Option $isFirst={isFirst} $isFlat={isFlat}>
-      <OptionInner $checked={Boolean(checked)} $selectable={selectable}>
+      <OptionInner $disabled={disabled} $checked={Boolean(checked)} $selectable={selectable}>
         {selectable ? (
           <Checkbox
+            disabled={disabled}
             value={category.id}
             checked={checked}
             onCheckedChange={() => handleSelect(category)}
           >
-            {category.title}
+            {category.title || 'Has no title'}
           </Checkbox>
         ) : (
           <SelectedCategory>
-            <span>{category.title}</span>
+            <span>{category.title || 'Has no title'}</span>
             <IconButton onClick={() => handleSelect(category)}>
               <Cross />
             </IconButton>

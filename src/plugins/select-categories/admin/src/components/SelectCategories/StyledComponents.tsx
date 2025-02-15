@@ -36,16 +36,26 @@ export const Option = styled.div<{ $isFirst: boolean; $isFlat: boolean }>`
   padding-left: ${({ $isFlat }) => ($isFlat ? '0' : '2rem')};
 `;
 
-export const OptionInner = styled.div<{ $checked: boolean; $selectable: boolean }>`
+export const OptionInner = styled.div<{
+  $checked: boolean;
+  $selectable: boolean;
+  $disabled: boolean;
+}>`
   padding: 0rem 1rem;
   border-radius: 0.4rem;
   background-color: ${({ $checked, $selectable }) =>
     $checked && $selectable ? 'rgba(72, 69, 255, 0.24)' : 'transparent'};
   border: ${({ $selectable }) => (!$selectable ? '1px solid #dcdce4' : 'none')};
+  opacity: ${({ $disabled }) => ($disabled ? '0.3' : '1')};
+  cursor: ${({ $disabled }) => ($disabled ? 'no-drop' : 'pointer')} !important;
 
   &:hover {
-    background-color: ${({ $selectable }) =>
-      $selectable ? 'rgba(72, 69, 255, 0.24)' : 'rgba(220, 220, 228, 0.4)'};
+    background-color: ${({ $selectable, $disabled }) =>
+      $disabled
+        ? '#f5c0b8'
+        : $selectable
+          ? ' rgba(72, 69, 255, 0.24)'
+          : 'rgba(220, 220, 228, 0.4)'};
   }
 
   & > div > label {

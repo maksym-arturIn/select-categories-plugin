@@ -15,7 +15,11 @@ import { useFetchClient } from '@strapi/strapi/admin';
 import type { IStrapiPayload, ICategoryTree, ISelectCategoriesProps, ICategory } from '../../types';
 import { PLUGIN_ID } from '../../pluginId';
 import { ChevronDown } from '@strapi/icons';
-import { filterCategories, getAllSubcategoryIds } from '../../utils/helpers';
+import {
+  filterCategories,
+  flattenSelectedCategories,
+  getAllSubcategoryIds,
+} from '../../utils/helpers';
 
 const SelectCategories = ({
   name,
@@ -34,6 +38,10 @@ const SelectCategories = ({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const filteredOptions = filterCategories(categories, search);
+
+  const selectedCategories = flattenSelectedCategories(categories, selectedIds).filter((category) =>
+    selectedIds.includes(category.id)
+  );
 
   const getCategoryTree = async () => {
     const { data = [] } = await client.get<IStrapiPayload<ICategoryTree>>(
@@ -88,7 +96,6 @@ const SelectCategories = ({
   }, []);
 
   useEffect(() => {
-    console.log('value', value);
     if (value) {
       const extractIds = (cats: ICategory[]): string[] => {
         return cats.reduce<string[]>((acc, cat) => {
@@ -148,9 +155,9 @@ const SelectCategories = ({
         </Menu>
       )}
 
-      {!isOpen && !!value?.length && (
+      {!isOpen && !!selectedCategories.length && (
         <SelectedCategoriesMenu>
-          {(value || []).map((category) => (
+          {selectedCategories.map((category) => (
             <RenderSelectOption
               key={category.id}
               category={category}
@@ -158,7 +165,7 @@ const SelectCategories = ({
               selected={selectedIds}
               selectable={false}
               isFirst
-              isFlat
+              isFlat={false}
             />
           ))}
         </SelectedCategoriesMenu>
