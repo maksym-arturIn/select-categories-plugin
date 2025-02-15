@@ -1,17 +1,5 @@
-interface CategoryTree {
-  id: number;
-  title: string;
-  slug: string;
-  data: any[];
-}
-
-interface CategoryTreeData {
-  title: string;
-  slug: string;
-  data: any[];
-}
-
-export default ({ strapi }) => ({
+import type { CategoryTree, CategoryTreeData } from '../types';
+export default ({ strapi }: any) => ({
   async find(query: any): Promise<CategoryTree[]> {
     return await strapi.entityService.findMany('plugin::select-categories.category-tree', query);
   },

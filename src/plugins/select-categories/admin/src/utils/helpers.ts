@@ -42,7 +42,7 @@ export const filterCategories = (categories: ICategory[], search: string): ICate
 
 export const getAllSubcategoryIds = (category: ICategory) => {
   let ids = [category.id];
-  category.subcategories.forEach((sub) => {
+  (category.subcategories || []).forEach((sub) => {
     ids = ids.concat(getAllSubcategoryIds(sub));
   });
   return ids;

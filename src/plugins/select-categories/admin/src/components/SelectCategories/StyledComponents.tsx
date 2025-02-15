@@ -101,6 +101,7 @@ export const SelectedCategoriesMenu = styled.div`
   overflow-y: auto;
   padding: 0.8rem 2rem 0.8rem 0;
   margin-top: 1rem;
+  background-color: #f9f9f9;
 `;
 
 export const SelectedCategory = styled.div`

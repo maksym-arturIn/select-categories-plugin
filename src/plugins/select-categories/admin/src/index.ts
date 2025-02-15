@@ -1,7 +1,8 @@
 import { PLUGIN_ID } from './pluginId';
 import { Initializer } from './components/Initializer';
 import { PluginIcon } from './components/PluginIcon';
-import { StrapiApp } from '@strapi/strapi/admin';
+import type { StrapiApp } from '@strapi/strapi/admin';
+import { getTranslation } from './utils/getTranslation';
 
 export default {
   register(app: StrapiApp) {
@@ -9,15 +10,11 @@ export default {
       to: `plugins/${PLUGIN_ID}`,
       icon: PluginIcon,
       intlLabel: {
-        id: `${PLUGIN_ID}.plugin.name`,
+        id: getTranslation('name'),
         defaultMessage: PLUGIN_ID,
       },
       permissions: [],
-      Component: async () => {
-        const component = await import('./pages/App');
-
-        return component;
-      },
+      Component: () => import('./pages/App'),
     });
 
     app.registerPlugin({
@@ -28,38 +25,37 @@ export default {
     });
 
     app.customFields.register({
-      name: 'select-categories',
+      name: PLUGIN_ID,
       pluginId: PLUGIN_ID,
       type: 'json',
       intlLabel: {
-        id: `${PLUGIN_ID}.select-categories.label`,
+        id: getTranslation('label'),
         defaultMessage: 'Select Categories',
       },
       intlDescription: {
-        id: `${PLUGIN_ID}.select-categories.description`,
+        id: getTranslation('description'),
         defaultMessage: 'A custom field for selecting categories',
       },
       components: {
-        Input: async () => await import('./components/SelectCategories'),
+        // @ts-ignore
+        Input: () => import('./components/SelectCategories'),
       },
       options: {
         base: [
           {
-            // @ts-ignore
-            name: 'options.categoriesTree',
+            name: 'default',
             // @ts-ignore
             type: 'json',
             intlLabel: {
-              id: `${PLUGIN_ID}.select-categories.tree`,
+              id: getTranslation('tree.label'),
               defaultMessage: 'Categories Tree',
             },
             description: {
-              id: `${PLUGIN_ID}.select-categories.tree.description`,
+              id: getTranslation('tree.description'),
               defaultMessage: 'Define a tree structure with categories and subcategories',
             },
           },
         ],
-        advanced: [],
       },
     });
   },

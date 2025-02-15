@@ -5,7 +5,7 @@ import { useFetchClient } from '@strapi/strapi/admin';
 import { TextFieldsBox, Header, Page, SaveButton, Title } from './StyledComponents';
 import { TextField, CategoriesAccordion } from '../../components';
 import { PLUGIN_ID } from '../../pluginId';
-import type { IStrapiPayload, ICategoryTree, ICategory } from '../../types';
+import type { IStrapiPayload, ICategoryTree } from '../../types';
 import { useNotification } from '@strapi/strapi/admin';
 import { dequal } from 'dequal';
 import { checkEmptyFields } from '../../utils/helpers';

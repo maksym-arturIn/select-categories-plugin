@@ -1,1 +1,15 @@
-{}
+{
+  "select-categories": {
+    "name": "Select Categories",
+    "description": "A custom field for selecting categories",
+    "label": "Select Categories",
+    "placeholder": "Select Categories",
+    "search": "Search",
+    "noResults": "No results found",
+    "selectAll": "Select All",
+    "tree": {
+      "label": "Categories Tree",
+      "description": "Define a tree structure with categories and subcategories"
+    }
+  }
+}

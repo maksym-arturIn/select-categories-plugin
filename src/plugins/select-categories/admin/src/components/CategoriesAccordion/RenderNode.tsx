@@ -107,9 +107,7 @@ export const RenderNode = ({
               />
               <Field.Error />
             </FieldRoot>
-            {/* <Checkbox checked={node.checked} onCheckedChange={() => handleCheckboxChange(node)}>
-              {node.name}
-            </Checkbox> */}
+
             <Actions>
               {currentIndex > 0 && (
                 <ActionButton onClick={updateChildOrder(node.id, -1)}>
